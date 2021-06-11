@@ -4,17 +4,20 @@
 library(Matrix)
 library(lavaan)
 library(BFpack)
+library(ggplot2)
 
-true_es <- .11
+sim_conditions <- lapply(c(0, .1, .2, .3), function(true_es){
+#true_es <- .2
 sample_sizes <- c(us = 517, dk = 522, nl = 350)
 
-hypotheses <- lapply(c("fam", "grp", "rec", "her", "def", "fai", "pro"), function(x){
-  if(!x == "fai"){
-    paste0("(", paste0(grep(x, names(est), fixed = TRUE, value = TRUE), collapse = ", "), ") > .1")
-  } else {
-    paste0("(", paste0(grep(x, names(est), fixed = TRUE, value = TRUE), collapse = ", "), ") < -.1")
-  }
-})
+hypotheses <- list("(fam_secs_us, fam_sic_us, fam_sepa_dk, fam_sic_dk, fam_secs_nl, fam_sepa_nl, fam_sic_nl) > .1",
+                   "(grp_secs_us, grp_sic_us, grp_sepa_dk, grp_sic_dk, grp_secs_nl, grp_sepa_nl, grp_sic_nl) > .1",
+                   "(rec_secs_us, rec_sic_us, rec_sepa_dk, rec_sic_dk, rec_secs_nl, rec_sepa_nl, rec_sic_nl) > .1",
+                   "(her_secs_us, her_sic_us, her_sepa_dk, her_sic_dk, her_secs_nl, her_sepa_nl, her_sic_nl) > .1",
+                   "(def_secs_us, def_sic_us, def_sepa_dk, def_sic_dk, def_secs_nl, def_sepa_nl, def_sic_nl) > .1",
+                   "(fai_secs_us, fai_sic_us, fai_sepa_dk, fai_sic_dk, fai_secs_nl, fai_sepa_nl, fai_sic_nl) < -.1",
+                   "(pro_secs_us, pro_sic_us, pro_sepa_dk, pro_sic_dk, pro_secs_nl, pro_sepa_nl, pro_sic_nl) > .1"
+                   )
 hypotheses[[8]] <- gsub("[<>]", "=", gsub("\\b(fam|grp)_(.+?)_", "\\2ON\\1_", gsub("\\) > 0 & \\(", ", ", paste0(gsub("-?\\.1", "0", hypotheses[[1]]), " & ", gsub(".1", "0", hypotheses[[2]], fixed = TRUE)))))
 hypotheses[[9]] <- gsub("fam", "rec", gsub("grp", "fai", hypotheses[[8]], fixed = TRUE), fixed = TRUE)
 
@@ -166,7 +169,7 @@ mods_9 <- lapply(mods_8, function(x){
 set.seed(1234)
 sim_results <- replicate(100, {
   # generate data
-  dfs <- lapply(names(sample_sizes), function(n){simulateData(model = mods[[n]], sample.nobs=sample_sizes[[n]])})
+  dfs <- lapply(names(sample_sizes), function(n){simulateData(model = pop_mods[[n]], sample.nobs=sample_sizes[[n]])})
   names(dfs) <- names(sample_sizes)
   out_cors <- 
   tryCatch({
@@ -249,26 +252,64 @@ sim_results <- replicate(100, {
     }, error = function(e){
       return(NA)
     })
+  c(out_cors, out_8, out_9)
+})
 })
 
-saveRDS(sim_results, "sim_results_0.RData")
-sim_results <- readRDS("sim_results_3.RData")
-df_plot <- do.call(rbind, lapply(1:7, function(i){
-  data.frame(Variable = c("fam", "grp", "rec", "her", "def", "fai", "pro")[i],
-             Value = sim_results[i, ],
-             Median = median(sim_results[i, ], na.rm = TRUE))
+#saveRDS(sim_results, "sim_results_2.RData")
+#saveRDS(sim_conditions, "sim_conditions.RData")
+#sim_results <- readRDS("sim_results_3.RData")
+df_plot <- do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
+  sim_results <- sim_conditions[[thiscond]]
+  df_plot <- do.call(rbind, lapply(1:nrow(sim_results), function(i){
+    themed <- median(sim_results[i, ], na.rm = TRUE)
+    prop3 <- na.omit(sim_results[i, ])
+    prop3 <- sum(prop3 >3)/length(prop3)
+    data.frame(Hypothesis = paste0("H", i, ", BFmed = ", formatC(themed, 2, format = "f"), ", p(BF > 3) = ", formatC(prop3, 2, format = "f")),
+               Value = sim_results[i, ],
+               Median = median(sim_results[i, ], na.rm = TRUE))
+  }))
+  df_plot$Condition <- paste0("R = ", c(0, .1, .2, .3)[thiscond])
+  df_plot
 }))
-install.packages("ggplot2")
-library(ggplot2)
+
+
 
 ggplot(df_plot, aes(x = Value))+
   geom_density()+
-  geom_vline(data = df_plot[!duplicated(df_plot$Variable), ], aes(xintercept = Median))+
-  geom_text(data = df_plot[!duplicated(df_plot$Variable), ], aes(label = round(Median), x = Median), y = .2, hjust = -1)+
-  facet_wrap(~Variable)+
+  #geom_vline(data = df_plot[!duplicated(df_plot$Variable), ], aes(xintercept = Median))+
+  #geom_text(data = df_plot[!duplicated(df_plot$Variable), ], aes(label = round(Median), x = Median), y = .2, hjust = -1)+
+  facet_grid(Hypothesis~Condition, scales = "free")+
   scale_x_log10() +
   labs(title = "Distribution of Bayes factors for each hypothesis across 100 replications")
 
 apply(sim_results, 1, function(x){
   x <- na.omit(x)
   sum(x >3)/length(x)})
+
+
+df_plot <- do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
+  sim_results <- sim_conditions[[thiscond]]
+  #browser()
+  sapply(1:nrow(sim_results), function(i){
+    prop3 <- na.omit(sim_results[i, ])
+    c(median(sim_results[i, ], na.rm = TRUE), sd(sim_results[i, ], na.rm = TRUE), sum(prop3 >3)/length(prop3))
+  })
+  
+}))
+
+
+tab_power <- data.frame(t(do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
+  sim_results <- sim_conditions[[thiscond]]
+  #browser()
+  sapply(1:nrow(sim_results), function(i){
+    prop3 <- na.omit(sim_results[i, ])
+    sum(prop3 >3)/length(prop3)
+  })
+  
+}))))
+
+names(tab_power) <- paste0("R = ", c(0, .1, .2, .3))
+rownames(tab_power) <- paste0("Hypothesis ", 1:9)
+
+write.csv(tab_power, "tab_power.csv")
