@@ -163,7 +163,7 @@ pop_mods <- lapply(list(us = pop_mod_us,
 mods_cor <- lapply(pop_mods, gsub, pattern = "[0-9\\. -]{2,}\\s?\\*", replacement = "")
 
 set.seed(1234)
-sim_results <- replicate(100, {
+sim_results <- replicate(2, {
   # generate data
   dfs <- lapply(names(sample_sizes), function(n){simulateData(model = pop_mods[[n]], sample.nobs=sample_sizes[[n]])})
   names(dfs) <- names(sample_sizes)
@@ -257,3 +257,8 @@ names(tab_power) <- paste0("R = ", c(0, .1, .2, .3))
 rownames(tab_power) <- paste0("Hypothesis ", 1:length(hypoth))
 
 write.csv(tab_power, "tab_power.csv")
+
+tmp <- sim_conditions[[3]][, 1]
+tmp[seq(from = 8, to = 28, by = 7)]
+
+prod(tmp[seq(from = 8, to = 28, by = 7)])
