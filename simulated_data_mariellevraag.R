@@ -9,15 +9,7 @@ library(ggplot2)
 sim_conditions <- lapply(c(0, .1, .2, .3), function(true_es){
 #true_es <- .2
 sample_sizes <- c(us = 517, dk = 522, nl = 350)
-# Logic is as follows: Each conceptual hypothesis can be tested across several scales, across several samples.
-# For example, "fam" represents the correlation between family values and political orientation.
-# secs, sic, and sepa are three scales of political orientation.
-# us, dk, and nl are three countries in which data were collected.
-# Not every scale is available in each country.
-# Thus, the hypothesis "family values are correlated > .1 with political orientation" can be
-# evaluated on all of these parameters:
-# (fam_secs_us, fam_sic_us, fam_sepa_dk, fam_sic_dk, fam_secs_nl, fam_sepa_nl, fam_sic_nl)
- 
+
 hypotheses <- list("(fam_secs_us, fam_sic_us, fam_sepa_dk, fam_sic_dk, fam_secs_nl, fam_sepa_nl, fam_sic_nl) > .1",
                    "(grp_secs_us, grp_sic_us, grp_sepa_dk, grp_sic_dk, grp_secs_nl, grp_sepa_nl, grp_sic_nl) > .1",
                    "(rec_secs_us, rec_sic_us, rec_sepa_dk, rec_sic_dk, rec_secs_nl, rec_sepa_nl, rec_sic_nl) > .1",
@@ -26,9 +18,14 @@ hypotheses <- list("(fam_secs_us, fam_sic_us, fam_sepa_dk, fam_sic_dk, fam_secs_
                    "(fai_secs_us, fai_sic_us, fai_sepa_dk, fai_sic_dk, fai_secs_nl, fai_sepa_nl, fai_sic_nl) < -.1",
                    "(pro_secs_us, pro_sic_us, pro_sepa_dk, pro_sic_dk, pro_secs_nl, pro_sepa_nl, pro_sic_nl) > .1"
                    )
-hypotheses[[8]] <- gsub("[<>]", "=", gsub("\\b(fam|grp)_(.+?)_", "\\2ON\\1_", gsub("\\) > 0 & \\(", ", ", paste0(gsub("-?\\.1", "0", hypotheses[[1]]), " & ", gsub(".1", "0", hypotheses[[2]], fixed = TRUE)))))
-hypotheses[[9]] <- gsub("fam", "rec", gsub("grp", "fai", hypotheses[[8]], fixed = TRUE), fixed = TRUE)
 
+hypotheses <- c(
+  hypotheses,
+  lapply(hypotheses, function(x){ gsub("[a-z_]+?_(dk|nl)[, ]{0,2}", "", x) }),
+  lapply(hypotheses, function(x){ gsub("[a-z_]+?_(us|nl)[, ]{0,2}", "", x) }),
+  lapply(hypotheses, function(x){ gsub("[a-z_]+?_(dk|us)[, ]{0,2}", "", x) })
+)
+hypotheses <- lapply(hypotheses, function(x){ gsub(", )", ")", x, fixed = T) })
 
 pop_mod_mac <- ' 
 # Mac loadings
@@ -164,15 +161,6 @@ pop_mods <- lapply(list(us = pop_mod_us,
                         })
 
 mods_cor <- lapply(pop_mods, gsub, pattern = "[0-9\\. -]{2,}\\s?\\*", replacement = "")
-mods_8 <- lapply(mods_cor, function(x){
-  x <- strsplit(x, split = "\\n")[[1]]
-  x <- x[!grepl("(rec|her|def|fai|pro)", x)]
-  x <- x[!grepl("#", x, fixed = TRUE)]
-  gsub("^(fam|grp) ~~ (secs|sic|sepa)$", "\\2 ~ \\1", x)
-})
-mods_9 <- lapply(mods_8, function(x){
-  gsub("fam", "rec", gsub("grp", "fai", x, fixed = TRUE), fixed = TRUE)
-})
 
 set.seed(1234)
 sim_results <- replicate(100, {
@@ -199,68 +187,16 @@ sim_results <- replicate(100, {
     sig <- as.matrix(Matrix::bdiag(lapply(res, `[[`, 2)))
     colnames(sig) <- rownames(sig) <- names(est)
     
-    bf <- lapply(hypotheses[1:7], BF,
+    bf <- lapply(hypotheses, BF,
                  x = est,
                  Sigma = sig,
                  n = sum(sample_sizes))
     
     sapply(bf, function(x){x$BFmatrix_confirmatory[1,2]})
   }, error = function(e){
-    return(rep(NA, 7))
+    return(rep(NA, length(hypotheses)))
   })
-  out_8 <- 
-    tryCatch({
-      # fit model
-      res_list <- lapply(names(mods_cor), function(nam){sem(model = mods_8[[nam]], data = dfs[[nam]])})
-      names(res_list) <- names(mods_cor)
-      
-      res <- lapply(names(res_list), function(country){
-        thisfit = res_list[[country]]
-        tab <- bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~")
-        estimates <- tab$estimate
-        Sigma <- tab$Sigma[[1]]
-        names(estimates) <- paste0(gsub("~", "ON", names(estimates), fixed = TRUE), "_", country)
-        colnames(Sigma) <- rownames(Sigma) <- names(estimates)
-        list(est = estimates, sig = Sigma)
-      })
-      est <- unlist(lapply(res, `[[`, 1))
-      sig <- as.matrix(Matrix::bdiag(lapply(res, `[[`, 2)))
-      colnames(sig) <- rownames(sig) <- names(est)
-      
-      BF(x = est,
-         Sigma = sig,
-         hypothesis = hypotheses[[8]],
-         n = sum(sample_sizes))$BFmatrix_confirmatory[2, 1]
-      }, error = function(e){
-      return(NA)
-    })
-  out_9 <- 
-    tryCatch({
-      # fit model
-      res_list <- lapply(names(mods_cor), function(nam){sem(model = mods_9[[nam]], data = dfs[[nam]])})
-      names(res_list) <- names(mods_cor)
-      
-      res <- lapply(names(res_list), function(country){
-        thisfit = res_list[[country]]
-        tab <- bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~")
-        estimates <- tab$estimate
-        Sigma <- tab$Sigma[[1]]
-        names(estimates) <- paste0(gsub("~", "ON", names(estimates), fixed = TRUE), "_", country)
-        colnames(Sigma) <- rownames(Sigma) <- names(estimates)
-        list(est = estimates, sig = Sigma)
-      })
-      est <- unlist(lapply(res, `[[`, 1))
-      sig <- as.matrix(Matrix::bdiag(lapply(res, `[[`, 2)))
-      colnames(sig) <- rownames(sig) <- names(est)
-      
-      BF(x = est,
-         Sigma = sig,
-         hypothesis = hypotheses[[9]],
-         n = sum(sample_sizes))$BFmatrix_confirmatory[2, 1]
-    }, error = function(e){
-      return(NA)
-    })
-  c(out_cors, out_8, out_9)
+  out_cors
 })
 })
 
@@ -318,6 +254,6 @@ tab_power <- data.frame(t(do.call(rbind, lapply(1:length(sim_conditions), functi
 }))))
 
 names(tab_power) <- paste0("R = ", c(0, .1, .2, .3))
-rownames(tab_power) <- paste0("Hypothesis ", 1:9)
+rownames(tab_power) <- paste0("Hypothesis ", 1:length(hypoth))
 
 write.csv(tab_power, "tab_power.csv")
