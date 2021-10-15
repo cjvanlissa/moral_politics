@@ -10,3 +10,4 @@
 *.log
 *.tex
 .Rproj.user
+sim_conditions2.RData

@@ -174,6 +174,10 @@ mods_9 <- lapply(mods_8, function(x){
   gsub("fam", "rec", gsub("grp", "fai", x, fixed = TRUE), fixed = TRUE)
 })
 
+removeothercountries <- function(hyp, cnt){
+  gsub(",\\s+\\)", "\\)", gsub(paste0("\\b[a-zA-Z_]+(?<!", cnt, ")\\b,?"), "", hyp, perl = TRUE))
+}
+
 set.seed(1234)
 sim_results <- replicate(100, {
   # generate data
@@ -195,16 +199,17 @@ sim_results <- replicate(100, {
       colnames(Sigma) <- rownames(Sigma) <- names(estimates)
       list(est = estimates, sig = Sigma)
     })
-    est <- unlist(lapply(res, `[[`, 1))
-    sig <- as.matrix(Matrix::bdiag(lapply(res, `[[`, 2)))
-    colnames(sig) <- rownames(sig) <- names(est)
-    
-    bf <- lapply(hypotheses[1:7], BF,
-                 x = est,
-                 Sigma = sig,
-                 n = sum(sample_sizes))
-    
-    sapply(bf, function(x){x$BFmatrix_confirmatory[1,2]})
+
+    # Get individual BFs for each sample
+    bf_individual <- sapply(1:length(res_list), function(i){
+      hyp <- paste0(unlist(lapply(hypotheses[1:7], removeothercountries, cnt = names(res_list)[i])), collapse = "; ")
+      tmp <- BF(x = res[[i]]$est,
+         hypothesis = hyp,
+         Sigma = res[[i]]$sig,
+         n = sample_sizes[i])
+      tmp$BFtu_confirmatory[1:7]
+    })
+    apply(bf_individual, 1, prod)
   }, error = function(e){
     return(rep(NA, 7))
   })
@@ -223,14 +228,15 @@ sim_results <- replicate(100, {
         colnames(Sigma) <- rownames(Sigma) <- names(estimates)
         list(est = estimates, sig = Sigma)
       })
-      est <- unlist(lapply(res, `[[`, 1))
-      sig <- as.matrix(Matrix::bdiag(lapply(res, `[[`, 2)))
-      colnames(sig) <- rownames(sig) <- names(est)
-      
-      BF(x = est,
-         Sigma = sig,
-         hypothesis = hypotheses[[8]],
-         n = sum(sample_sizes))$BFmatrix_confirmatory[2, 1]
+      bf_individual <- sapply(1:length(res_list), function(i){
+        hyp <- removeothercountries(hypotheses[8], cnt = names(res_list)[i])
+        tmp <- BF(x = res[[i]]$est,
+                  hypothesis = hyp,
+                  Sigma = res[[i]]$sig,
+                  n = sample_sizes[i])
+        tmp$BFtu_confirmatory[1]
+      })
+      prod(bf_individual)
       }, error = function(e){
       return(NA)
     })
@@ -249,14 +255,15 @@ sim_results <- replicate(100, {
         colnames(Sigma) <- rownames(Sigma) <- names(estimates)
         list(est = estimates, sig = Sigma)
       })
-      est <- unlist(lapply(res, `[[`, 1))
-      sig <- as.matrix(Matrix::bdiag(lapply(res, `[[`, 2)))
-      colnames(sig) <- rownames(sig) <- names(est)
-      
-      BF(x = est,
-         Sigma = sig,
-         hypothesis = hypotheses[[9]],
-         n = sum(sample_sizes))$BFmatrix_confirmatory[2, 1]
+      bf_individual <- sapply(1:length(res_list), function(i){
+        hyp <- removeothercountries(hypotheses[9], cnt = names(res_list)[i])
+        tmp <- BF(x = res[[i]]$est,
+                  hypothesis = hyp,
+                  Sigma = res[[i]]$sig,
+                  n = sample_sizes[i])
+        tmp$BFtu_confirmatory[1]
+      })
+      prod(bf_individual)
     }, error = function(e){
       return(NA)
     })
@@ -264,8 +271,8 @@ sim_results <- replicate(100, {
 })
 })
 
-#saveRDS(sim_results, "sim_results_2.RData")
-#saveRDS(sim_conditions, "sim_conditions.RData")
+#saveRDS(sim_results, "sim_results_4.RData")
+#saveRDS(sim_conditions, "sim_conditions2.RData")
 #sim_results <- readRDS("sim_results_3.RData")
 df_plot <- do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
   sim_results <- sim_conditions[[thiscond]]
@@ -291,7 +298,7 @@ ggplot(df_plot, aes(x = Value))+
   scale_x_log10() +
   labs(title = "Distribution of Bayes factors for each hypothesis across 100 replications")
 
-apply(sim_results, 1, function(x){
+apply(sim_conditions[[2]], 1, function(x){
   x <- na.omit(x)
   sum(x >3)/length(x)})
 
