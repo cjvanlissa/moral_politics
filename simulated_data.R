@@ -11,22 +11,22 @@ sim_conditions <- lapply(c(0, .1, .2, .3), function(true_es){
 sample_sizes <- c(us = 517, dk = 522, nl = 350)
 # Logic is as follows: Each conceptual hypothesis can be tested across several scales, across several samples.
 # For example, "fam" represents the correlation between family values and political orientation.
-# secs, sic, and sepa are three scales of political orientation.
+# secs and sepa are three scales of political orientation.
 # us, dk, and nl are three countries in which data were collected.
 # Not every scale is available in each country.
 # Thus, the hypothesis "family values are correlated > .1 with political orientation" can be
 # evaluated on all of these parameters:
-# (fam_secs_us, fam_sic_us, fam_sepa_dk, fam_sic_dk, fam_secs_nl, fam_sepa_nl, fam_sic_nl)
+# (fam_secs_us, fam_sepa_dk, fam_secs_nl, fam_sepa_nl)
  
-hypotheses <- list("(fam_secs_us, fam_sic_us, fam_sepa_dk, fam_sic_dk, fam_secs_nl, fam_sepa_nl, fam_sic_nl) > .1",
-                   "(grp_secs_us, grp_sic_us, grp_sepa_dk, grp_sic_dk, grp_secs_nl, grp_sepa_nl, grp_sic_nl) > .1",
-                   "(rec_secs_us, rec_sic_us, rec_sepa_dk, rec_sic_dk, rec_secs_nl, rec_sepa_nl, rec_sic_nl) > .1",
-                   "(her_secs_us, her_sic_us, her_sepa_dk, her_sic_dk, her_secs_nl, her_sepa_nl, her_sic_nl) > .1",
-                   "(def_secs_us, def_sic_us, def_sepa_dk, def_sic_dk, def_secs_nl, def_sepa_nl, def_sic_nl) > .1",
-                   "(fai_secs_us, fai_sic_us, fai_sepa_dk, fai_sic_dk, fai_secs_nl, fai_sepa_nl, fai_sic_nl) < -.1",
-                   "(pro_secs_us, pro_sic_us, pro_sepa_dk, pro_sic_dk, pro_secs_nl, pro_sepa_nl, pro_sic_nl) > .1"
+hypotheses <- list("(fam_secs_soc_us, fam_secs_eco_us, fam_sepa_soc_dk, fam_sepa_eco_dk, fam_secs_soc_nl, fam_secs_eco_nl, fam_sepa_soc_nl, fam_sepa_eco_nl) > .1",
+                   "(grp_secs_soc_us, grp_secs_eco_us, grp_sepa_soc_dk, grp_sepa_eco_dk, grp_secs_soc_nl, grp_secs_eco_nl, grp_sepa_soc_nl, grp_sepa_eco_nl) > .1",
+                   "(rec_secs_soc_us, rec_secs_eco_us, rec_sepa_soc_dk, rec_sepa_eco_dk, rec_secs_soc_nl, rec_secs_eco_nl, rec_sepa_soc_nl, rec_sepa_eco_nl) > .1",
+                   "(her_secs_soc_us, her_secs_eco_us, her_sepa_soc_dk, her_sepa_eco_dk, her_secs_soc_nl, her_secs_eco_nl, her_sepa_soc_nl, her_sepa_eco_nl) > .1",
+                   "(def_secs_soc_us, def_secs_eco_us, def_sepa_soc_dk, def_sepa_eco_dk, def_secs_soc_nl, def_secs_eco_nl, def_sepa_soc_nl, def_sepa_eco_nl) > .1",
+                   "(fai_secs_soc_us, fai_secs_eco_us, fai_sepa_soc_dk, fai_sepa_eco_dk, fai_secs_soc_nl, fai_secs_eco_nl, fai_sepa_soc_nl, fai_sepa_eco_nl) < -.1",
+                   "(pro_secs_soc_us, pro_secs_eco_us, pro_sepa_soc_dk, pro_sepa_eco_dk, pro_secs_soc_nl, pro_secs_eco_nl, pro_sepa_soc_nl, pro_sepa_eco_nl) > .1"
                    )
-hypotheses[[8]] <- gsub("[<>]", "=", gsub("\\b(fam|grp)_(.+?)_", "\\2ON\\1_", gsub("\\) > 0 & \\(", ", ", paste0(gsub("-?\\.1", "0", hypotheses[[1]]), " & ", gsub(".1", "0", hypotheses[[2]], fixed = TRUE)))))
+hypotheses[[8]] <- gsub("[<>]", "=", gsub("\\b(fam|grp)_((sepa|secs)_(soc|eco))_", "\\2ON\\1_", gsub("\\) > 0 & \\(", ", ", paste0(gsub("-?\\.1", "0", hypotheses[[1]]), " & ", gsub(".1", "0", hypotheses[[2]], fixed = TRUE)))))
 hypotheses[[9]] <- gsub("fam", "rec", gsub("grp", "fai", hypotheses[[8]], fixed = TRUE), fixed = TRUE)
 
 
@@ -79,82 +79,96 @@ pro ~~ 0.081893928 * fai
 '
 
 pop_mod_us <- paste0(pop_mod_mac,
+                     '# SECS\n',
+                     paste0("secs_soc =~ ", round(runif(7, .2,.9), 2), paste0(" * secs",1:7), collapse = "\n"), '\n',
+                     paste0("secs_eco =~ ", round(runif(5, .2,.9), 2), paste0(" * secs",8:12), collapse = "\n"),       '\n',          
 '
 # Cors with Social and Economic Conservatism Scale (Everett, 2013)
-fam ~~ .1 * secs
-grp ~~ .1 * secs
-rec ~~ .1 * secs
-her ~~ .1 * secs
-def ~~ .1 * secs
-fai ~~ -.1 * secs
-pro ~~ .1 * secs
+fam ~~ .1 * secs_soc
+grp ~~ .1 * secs_soc
+rec ~~ .1 * secs_soc
+her ~~ .1 * secs_soc
+def ~~ .1 * secs_soc
+fai ~~ -.1 * secs_soc
+pro ~~ .1 * secs_soc
 
-# Cors with Self-identified conservatism
-fam ~~ .1 * sic
-grp ~~ .1 * sic
-rec ~~ .1 * sic
-her ~~ .1 * sic
-def ~~ .1 * sic
-fai ~~ -.1 * sic
-pro ~~ .1 * sic
+fam ~~ .1 * secs_eco
+grp ~~ .1 * secs_eco
+rec ~~ .1 * secs_eco
+her ~~ .1 * secs_eco
+def ~~ .1 * secs_eco
+fai ~~ -.1 * secs_eco
+pro ~~ .1 * secs_eco
+
 ')
 
 
 pop_mod_dk <- paste0(pop_mod_mac,
-'# Social and economic policy attitudes',
-paste0("sepa =~ ", round(runif(10, .2,.9), 2), paste0(" * sepa",1:10), collapse = "\n"),
+'# Social and economic policy attitudes\n',
+paste0("sepa_soc =~ ", round(runif(5, .2,.9), 2), paste0(" * sepa",1:5), collapse = "\n"), '\n',
+paste0("sepa_eco =~ ", round(runif(5, .2,.9), 2), paste0(" * sepa",6:10), collapse = "\n"), '\n',
 '
 # Cors with Social and economic policy attitudes
-fam ~~ .1 * sepa
-grp ~~ .1 * sepa
-rec ~~ .1 * sepa
-her ~~ .1 * sepa
-def ~~ .1 * sepa
-fai ~~ -.1 * sepa
-pro ~~ .1 * sepa
+fam ~~ .1 * sepa_soc
+grp ~~ .1 * sepa_soc
+rec ~~ .1 * sepa_soc
+her ~~ .1 * sepa_soc
+def ~~ .1 * sepa_soc
+fai ~~ -.1 * sepa_soc
+pro ~~ .1 * sepa_soc
 
-# Cors with Self-identified conservatism
-fam ~~ .1 * sic
-grp ~~ .1 * sic
-rec ~~ .1 * sic
-her ~~ .1 * sic
-def ~~ .1 * sic
-fai ~~ -.1 * sic
-pro ~~ .1 * sic
+fam ~~ .1 * sepa_eco
+grp ~~ .1 * sepa_eco
+rec ~~ .1 * sepa_eco
+her ~~ .1 * sepa_eco
+def ~~ .1 * sepa_eco
+fai ~~ -.1 * sepa_eco
+pro ~~ .1 * sepa_eco
+
 ')
 
 pop_mod_nl <- paste0(pop_mod_mac,
-                 '# Social and economic policy attitudes',
-                 paste0("sepa =~ ", round(runif(10, .2,.9), 2), paste0(" * sepa",1:10), collapse = "\n"),
-                 '# Self-identified conservatism',
-                 paste0("sic =~ ", round(runif(3, .2,.9), 2), paste0(" * sic",1:3), collapse = "\n"),
+                 '# Social and economic policy attitudes\n',
+                 paste0("sepa_soc =~ ", round(runif(5, .2,.9), 2), paste0(" * sepa",1:5), collapse = "\n"), '\n',
+                 paste0("sepa_eco =~ ", round(runif(5, .2,.9), 2), paste0(" * sepa",6:10), collapse = "\n"), '\n',
+                 '# SECS', '\n',
+                 paste0("secs_soc =~ ", round(runif(7, .2,.9), 2), paste0(" * secs",1:7), collapse = "\n"), '\n',
+                 paste0("secs_eco =~ ", round(runif(5, .2,.9), 2), paste0(" * secs",8:12), collapse = "\n"), '\n',
                  '
 # Cors with Social and Economic Conservatism Scale (Everett, 2013)
-fam ~~ .1 * secs
-grp ~~ .1 * secs
-rec ~~ .1 * secs
-her ~~ .1 * secs
-def ~~ .1 * secs
-fai ~~ -.1 * secs
-pro ~~ .1 * secs
+fam ~~ .1 * secs_soc
+grp ~~ .1 * secs_soc
+rec ~~ .1 * secs_soc
+her ~~ .1 * secs_soc
+def ~~ .1 * secs_soc
+fai ~~ -.1 * secs_soc
+pro ~~ .1 * secs_soc
+
+fam ~~ .1 * secs_eco
+grp ~~ .1 * secs_eco
+rec ~~ .1 * secs_eco
+her ~~ .1 * secs_eco
+def ~~ .1 * secs_eco
+fai ~~ -.1 * secs_eco
+pro ~~ .1 * secs_eco
 
 # Cors with Social and economic policy attitudes
-fam ~~ .1 * sepa
-grp ~~ .1 * sepa
-rec ~~ .1 * sepa
-her ~~ .1 * sepa
-def ~~ .1 * sepa
-fai ~~ -.1 * sepa
-pro ~~ .1 * sepa
+fam ~~ .1 * sepa_soc
+grp ~~ .1 * sepa_soc
+rec ~~ .1 * sepa_soc
+her ~~ .1 * sepa_soc
+def ~~ .1 * sepa_soc
+fai ~~ -.1 * sepa_soc
+pro ~~ .1 * sepa_soc
 
-# Cors with Self-identified conservatism
-fam ~~ .1 * sic
-grp ~~ .1 * sic
-rec ~~ .1 * sic
-her ~~ .1 * sic
-def ~~ .1 * sic
-fai ~~ -.1 * sic
-pro ~~ .1 * sic
+fam ~~ .1 * sepa_eco
+grp ~~ .1 * sepa_eco
+rec ~~ .1 * sepa_eco
+her ~~ .1 * sepa_eco
+def ~~ .1 * sepa_eco
+fai ~~ -.1 * sepa_eco
+pro ~~ .1 * sepa_eco
+
 ')
 
 pop_mods <- lapply(list(us = pop_mod_us,
@@ -168,7 +182,7 @@ mods_8 <- lapply(mods_cor, function(x){
   x <- strsplit(x, split = "\\n")[[1]]
   x <- x[!grepl("(rec|her|def|fai|pro)", x)]
   x <- x[!grepl("#", x, fixed = TRUE)]
-  gsub("^(fam|grp) ~~ (secs|sic|sepa)$", "\\2 ~ \\1", x)
+  gsub("^(fam|grp) ~~ (secs|sepa)_(soc|eco)$", "\\2_\\3 ~ \\1", x)
 })
 mods_9 <- lapply(mods_8, function(x){
   gsub("fam", "rec", gsub("grp", "fai", x, fixed = TRUE), fixed = TRUE)
@@ -192,7 +206,7 @@ sim_results <- replicate(100, {
     res <- lapply(names(res_list), function(country){
       thisfit = res_list[[country]]
       tab <- bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~~")
-      keep_these <- which(grepl("~~(secs|sic|sepa)$", names(tab$estimate)) & !grepl("(secs|sic|sepa)~~", names(tab$estimate)))
+      keep_these <- which(grepl("~~(secs|sepa)_(soc|eco)$", names(tab$estimate)) & !grepl("(secs|sepa)_(soc|eco)~~", names(tab$estimate)))
       estimates <- tab$estimate[keep_these]
       Sigma <- tab$Sigma[[1]][keep_these, keep_these]
       names(estimates) <- paste0(gsub("~~", "_", names(estimates), fixed = TRUE), "_", country)
@@ -271,7 +285,7 @@ sim_results <- replicate(100, {
 })
 })
 
-#saveRDS(sim_results, "sim_results_4.RData")
+#saveRDS(sim_results, "sim_results_5.RData")
 #saveRDS(sim_conditions, "sim_conditions2.RData")
 #sim_results <- readRDS("sim_results_3.RData")
 df_plot <- do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
