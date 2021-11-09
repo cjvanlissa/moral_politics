@@ -54,12 +54,12 @@ names(cfas) <- names(scales_list)
 ## Necessary deviations from preregistration
 
 When attempting to conduct the preregistered analyses,
-we noticed that the model did not converge in one of the datasets (NL).
+the model did not converge in one of the datasets (NL).
 We examined individual CFAs for the included scales to determine potential
 sources of misspecification.
-These analyses, summarized below, indicate that several scales in that dataset
-displayed evidence of not being unidimensional,
-had poor reliability, or had no factors with Eigenvalues greater than would be expected by random chance.
+These analyses, summarized below, indicated that several scales in that dataset
+displayed evidence of not being unidimensional or had no factors with Eigenvalues greater than would be expected by random chance (see column 'Factors', which is based on Horn's parallel analysis, 1965),
+had poor reliability (estimated using McDonald's Omega, which is calculated from the factor loadings and does not assume that all factor loadings are identical as Cronbach's alpha does).
 
 ```{r tabscale, results = "asis"}
 invisible(lapply(names(cfas), function(cntr){
@@ -103,6 +103,7 @@ For secs_soc, only items 4-5 loaded consistently high on the same factor.
 For secs_eco, no items loaded consistently high on the same factor.
 We removed items not consistently loading on one factor,
 and dropped secs_eco entirely.
+We applied these changes consistently across countries.
 
 ```{r, include=FALSE}
 use_scales <- lapply(scales_list, function(i){
@@ -198,6 +199,7 @@ invisible(lapply(1:length(bayesfactors), function(h){
 According to these analyses, hypotheses `r paste0(which(bayesfactors > 3), collapse = ", ")` were supported.
 
 These results are qualified by the relatively poor psychometric properties of some scales,
+the lack of measurement invariance for some scales,
 and the poor model fit of the CFA estimated in the three countries (see below).
 Inspection of the modification indices suggested that adding cross-loadings might improve model fit,
 but with the low number of indicators per factor this might compromise interpretability.
