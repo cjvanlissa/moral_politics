@@ -20,7 +20,7 @@ scales_list <-
       her = c("mj10", "mj11", "mj12"),
       def = c("mj13", "mj14", "mj15"),
       fai = c("mj16", "mj17", "mj18"),
-      prop = c("mj19", "mj20", "mj21")
+      pro = c("mj19", "mj20", "mj21")
     ),
     nl = list(
       sepa_soc = c("dsc_1", "dsc_2", "dsc_3", "dsc_4", "dsc_5"),

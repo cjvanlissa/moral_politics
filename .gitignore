@@ -2,6 +2,7 @@
 .Rprofile
 *.csv
 *.sav
+*.dta
 *.sas7bdat
 *.xlsx
 *.xls
@@ -11,3 +12,9 @@
 *.tex
 .Rproj.user
 sim_conditions2.RData
+nl.csv
+!codebook_nl.csv
+dk.csv
+!codebook_dk.csv
+us.csv
+!codebook_us.csv

@@ -1,0 +1,197 @@
+list(us = " 
+fam ~~ secs_soc
+grp ~~ secs_soc
+rec ~~ secs_soc
+her ~~ secs_soc
+def ~~ secs_soc
+fai ~~ secs_soc
+pro ~~ secs_soc
+
+fam ~~ secs_eco
+grp ~~ secs_eco
+rec ~~ secs_eco
+her ~~ secs_eco
+def ~~ secs_eco
+fai ~~ secs_eco
+pro ~~ secs_eco
+",
+dk = "
+# Mac loadings
+fam =~ fam1
+fam =~ fam2
+fam =~ fam3
+grp =~ grp1
+grp =~ grp2
+grp =~ grp3
+rec =~ rec1
+rec =~ rec2
+rec =~ rec3
+her =~ her1
+her =~ her2
+her =~ her3
+def =~ def1
+def =~ def2
+def =~ def3
+fai =~ fai1
+fai =~ fai2
+fai =~ fai3
+pro =~ pro1
+pro =~ pro2
+pro =~ pro3
+
+# Mac cors
+grp ~~ fam
+rec ~~ fam
+rec ~~ grp
+her ~~ fam
+her ~~ grp
+her ~~ rec
+def ~~ fam
+def ~~ grp
+def ~~ rec
+def ~~ her
+fai ~~ fam
+fai ~~ grp
+fai ~~ rec
+fai ~~ her
+fai ~~ def
+pro ~~ fam
+pro ~~ grp
+pro ~~ rec
+pro ~~ her
+pro ~~ def
+pro ~~ fai
+# Social and economic policy attitudes
+sepa_soc =~ sepa1
+sepa_soc =~ sepa2
+sepa_soc =~ sepa3
+sepa_soc =~ sepa4
+sepa_soc =~ sepa5
+sepa_eco =~ sepa6
+sepa_eco =~ sepa7
+sepa_eco =~ sepa8
+sepa_eco =~ sepa9
+sepa_eco =~ sepa10
+
+# Cors with Social and economic policy attitudes
+fam ~~ sepa_soc
+grp ~~ sepa_soc
+rec ~~ sepa_soc
+her ~~ sepa_soc
+def ~~ sepa_soc
+fai ~~ sepa_soc
+pro ~~ sepa_soc
+
+fam ~~ sepa_eco
+grp ~~ sepa_eco
+rec ~~ sepa_eco
+her ~~ sepa_eco
+def ~~ sepa_eco
+fai ~~ sepa_eco
+pro ~~ sepa_eco
+",
+nl = " 
+# Mac loadings
+fam =~ fam1
+fam =~ fam2
+fam =~ fam3
+grp =~ grp1
+grp =~ grp2
+grp =~ grp3
+rec =~ rec1
+rec =~ rec2
+rec =~ rec3
+her =~ her1
+her =~ her2
+her =~ her3
+def =~ def1
+def =~ def2
+def =~ def3
+fai =~ fai1
+fai =~ fai2
+fai =~ fai3
+pro =~ pro1
+pro =~ pro2
+pro =~ pro3
+
+# Mac cors
+grp ~~ fam
+rec ~~ fam
+rec ~~ grp
+her ~~ fam
+her ~~ grp
+her ~~ rec
+def ~~ fam
+def ~~ grp
+def ~~ rec
+def ~~ her
+fai ~~ fam
+fai ~~ grp
+fai ~~ rec
+fai ~~ her
+fai ~~ def
+pro ~~ fam
+pro ~~ grp
+pro ~~ rec
+pro ~~ her
+pro ~~ def
+pro ~~ fai
+# Social and economic policy attitudes
+sepa_soc =~ sepa1
+sepa_soc =~ sepa2
+sepa_soc =~ sepa3
+sepa_soc =~ sepa4
+sepa_soc =~ sepa5
+sepa_eco =~ sepa6
+sepa_eco =~ sepa7
+sepa_eco =~ sepa8
+sepa_eco =~ sepa9
+sepa_eco =~ sepa10
+# SECS
+secs_soc =~ secs1
+secs_soc =~ secs2
+secs_soc =~ secs3
+secs_soc =~ secs4
+secs_soc =~ secs5
+secs_soc =~ secs6
+secs_soc =~ secs7
+secs_eco =~ secs8
+secs_eco =~ secs9
+secs_eco =~ secs10
+secs_eco =~ secs11
+secs_eco =~ secs12
+
+# Cors with Social and Economic Conservatism Scale (Everett, 2013)
+fam ~~ secs_soc
+grp ~~ secs_soc
+rec ~~ secs_soc
+her ~~ secs_soc
+def ~~ secs_soc
+fai ~~ secs_soc
+pro ~~ secs_soc
+
+fam ~~ secs_eco
+grp ~~ secs_eco
+rec ~~ secs_eco
+her ~~ secs_eco
+def ~~ secs_eco
+fai ~~ secs_eco
+pro ~~ secs_eco
+
+# Cors with Social and economic policy attitudes
+fam ~~ sepa_soc
+grp ~~ sepa_soc
+rec ~~ sepa_soc
+her ~~ sepa_soc
+def ~~ sepa_soc
+fai ~~ sepa_soc
+pro ~~ sepa_soc
+
+fam ~~ sepa_eco
+grp ~~ sepa_eco
+rec ~~ sepa_eco
+her ~~ sepa_eco
+def ~~ sepa_eco
+fai ~~ sepa_eco
+pro ~~ sepa_eco
+")

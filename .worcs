@@ -1,3 +1,14 @@
 worcs_version: 0.1.8
 creator: Lissa102
 entry_point: manuscript/manuscript.Rmd
+data:
+  nl.csv:
+    codebook: codebook_nl.Rmd
+  dk.csv:
+    codebook: codebook_dk.Rmd
+  us.csv:
+    codebook: codebook_us.Rmd
+checksums:
+  nl.csv: a135ddd8ce0cbfc81f57dad6a8120e9e
+  dk.csv: 72e47cb6a9130b953aa6652cdfd79efc
+  us.csv: 3ba9b2fb8248f186f783dd9dec2cc66f

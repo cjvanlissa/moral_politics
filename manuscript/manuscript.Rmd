@@ -1,46 +1,212 @@
 ---
-title: "Untitled"
-output: github_document
+title: "Morality, politics, and cooperation"
+output: bookdown::html_document2
 date: '`r format(Sys.time(), "%d %B, %Y")`'
 bibliography: references.bib
 knit: worcs::cite_all
 ---
 
 ```{r setup, include=FALSE}
-library("worcs")
 # We recommend that you prepare your raw data for analysis in 'prepare_data.R',
 # and end that file with either open_data(yourdata), or closed_data(yourdata).
 # Then, uncomment the line below to load the original or synthetic data
 # (whichever is available), to allow anyone to reproduce your code:
-# load_data()
-knitr::opts_chunk$set(echo = TRUE)
+library("worcs")
+knitr::opts_chunk$set(echo = FALSE, results = "hide", message = FALSE, warning = FALSE)
+options(knitr.kable.NA = '')
+library(ggplot2)
+library(tidySEM)
+library(lavaan)
+library(semTools)
+library(kableExtra)
+library(bookdown)
+library(psych)
+dat <- load_data(to_envir = FALSE)
+source("../scales_list.R")
+scales_list <- lapply(scales_list, function(i){
+  tmp <- lapply(names(i), function(j){ paste0(j, "_", 1:length(i[[j]]))})
+  names(tmp) <- names(i)
+  tmp
+  })
+set.seed(1)
+cfas <- lapply(names(scales_list), function(cnt){
+  results <- t(sapply(scales_list[[cnt]], function(scal){
+    out <- cfa(paste0("F =~ ", paste0(scal, collapse = "+")), std.lv = TRUE, data = dat[[cnt]])
+    paran <- fa.parallel(dat[[cnt]][, scal])
+    tab <- table_results(out, columns = NULL, digits=3)
+    tab <- tab[-nrow(tab), ]
+    loadns <- as.numeric(tab$est_std)[tab$op == "=~"]
+    r2s <- lavInspect(out, "r2")
+    omga <- semTools::reliability(out, what = "omega")[1,1]
+    c(Subscale = gsub("_\\d$", "", scal[1]),
+      Items = length(scal),
+      n = out@Data@nobs[[1]],
+      formatC(unlist(table_fit(out)[1, c("chisq", "cfi", "tli", "rmsea", "srmr")]), digits = 3, format = "f"), 
+      formatC(c(min_load = min(loadns), max_load = max(loadns), min_r2 = min(r2s), max_r2 = max(r2s), omega = omga), digits = 3, format = "f"),
+      Reliability = tidySEM:::interpret(omga),
+      Factors = fa.parallel(dat[[cnt]][,scal]) $nfact
+      )
+  }))
+})
+names(cfas) <- names(scales_list)
 ```
 
-This manuscript uses the Workflow for Open Reproducible Code in Science [@vanlissaWORCSWorkflowOpen2020] to ensure reproducibility and transparency. All code <!--and data--> are available at <git@github.com:cjvanlissa/moral_politics.git>.
+## Necessary deviations from preregistration
 
-This is an example of a non-essential citation [@@vanlissaWORCSWorkflowOpen2020]. If you change the rendering function to `worcs::cite_essential`, it will be removed.
+When attempting to conduct the preregistered analyses,
+we noticed that the model did not converge in one of the datasets (NL).
+We examined individual CFAs for the included scales to determine potential
+sources of misspecification.
+These analyses, summarized below, indicate that several scales in that dataset
+displayed evidence of not being unidimensional,
+had poor reliability, or had no factors with Eigenvalues greater than would be expected by random chance.
 
-<!--The function below inserts a notification if the manuscript is knit using synthetic data. Make sure to insert it after load_data().-->
-`r notify_synthetic()`
-
-## GitHub Documents
-
-This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
-
-## Including Code
-
-You can include R code in the document as follows:
-
-```{r cars}
-summary(cars)
+```{r tabscale, results = "asis"}
+invisible(lapply(names(cfas), function(cntr){
+  print({kbl(cfas[[cntr]], caption = paste0("Scale reliability ", cntr)) |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+})}))
 ```
 
-## Including Plots
+To understand these issues better, we performed exploratory factor analysis on scales that showed indications of being non-unidimensional in at least one country.
 
-You can also embed plots, for example:
+```{r notunidim, results = "asis"}
+allscales <- do.call(c, scales_list)
+nfacs <- as.integer(do.call(c, lapply(cfas, function(i){i[, 'Factors']})))
+check_these <- nfacs > 1
+these_scales <- unique(do.call(c, lapply(cfas, function(i){i[, 'Subscale']}))[check_these])
+check_these <- grep(paste0("^.{2}\\.(", paste0(these_scales, collapse = "|"), ")$"), names(allscales))
+these_scales <- allscales[check_these]
+nfacs <- nfacs[check_these]
+nfacs[nfacs == 0] <- 2
+out <- mapply(function(scal, nfac){
+  fa(dat[[substring(scal, first = 1, last = 2)]][these_scales[[scal]]], nfac)
+}, scal = names(these_scales), nfac = rep(2, length(these_scales)))
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+these_scales <- unique(do.call(c, lapply(cfas, function(i){i[, 'Subscale']}))[check_these])
+for(scal in these_scales){
+  print(kbl(do.call(cbind,
+  lapply(grep(scal, names(out), value = TRUE), function(i){
+    tmp <- data.frame(unclass(out[[i]][["loadings"]]))
+    names(tmp) <- paste0(substring(i, 1,2), " Factor ", 1:ncol(tmp))
+    rownames(tmp) <- paste0("Item ", 1:nrow(tmp))
+    tmp
+  })
+), digits = 2, caption = paste0("Factor loadings for ", scal))|>
+  kable_styling(bootstrap_options = c("striped", "hover")))
+}
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+These factor analyses suggest that items 3-5 of sepa_soc loaded most consistently on the same factor.
+Similarly, items 3-5 of sepa_eco loaded most consistently on the same factor.
+For secs_soc, only items 4-5 loaded consistently high on the same factor.
+For secs_eco, no items loaded consistently high on the same factor.
+We removed items not consistently loading on one factor,
+and dropped secs_eco entirely.
+
+```{r, include=FALSE}
+use_scales <- lapply(scales_list, function(i){
+  thenames <- grepl("sepa_(soc|eco)", names(i))
+  if(any(thenames)){
+    i[which(thenames)] <- lapply(i[which(thenames)], `[`, 3:5)
+  }
+  i
+})
+use_scales <- lapply(use_scales, function(i){
+  thenames <- grepl("secs_soc", names(i))
+  if(any(thenames)){
+    i[which(thenames)] <- lapply(i[which(thenames)], `[`, 4:5)
+  }
+  i
+})
+use_scales$us$secs_eco <- NULL
+use_scales$nl$secs_eco <- NULL
+
+set.seed(1)
+cfas <- lapply(names(use_scales), function(cnt){
+  results <- t(sapply(use_scales[[cnt]], function(scal){
+    out <- cfa(paste0("F =~ ", paste0(scal, collapse = "+")), std.lv = TRUE, data = dat[[cnt]])
+    paran <- fa.parallel(dat[[cnt]][, scal])
+    tab <- table_results(out, columns = NULL, digits=3)
+    tab <- tab[-nrow(tab), ]
+    loadns <- as.numeric(tab$est_std)[tab$op == "=~"]
+    r2s <- lavInspect(out, "r2")
+    omga <- semTools::reliability(out, what = "omega")[1,1]
+    c(Subscale = gsub("_\\d$", "", scal[1]),
+      Items = length(scal),
+      n = out@Data@nobs[[1]],
+      formatC(unlist(table_fit(out)[1, c("chisq", "cfi", "tli", "rmsea", "srmr")]), digits = 3, format = "f"), 
+      formatC(c(min_load = min(loadns), max_load = max(loadns), min_r2 = min(r2s), max_r2 = max(r2s), omega = omga), digits = 3, format = "f"),
+      Reliability = tidySEM:::interpret(omga),
+      Factors = invisible(fa.parallel(dat[[cnt]][,scal])$nfact)
+      )
+  }))
+})
+names(cfas) <- names(use_scales)
+
+meas_inv <- sapply(use_scales$dk, function(scal){
+  tmpdat <- rbind(tryCatch(cbind(dat$nl[, scal], Country = "NL"), error = function(e) NULL),
+                  tryCatch(cbind(dat$dk[, scal], Country = "DK"), error = function(e) NULL),
+                  tryCatch(cbind(dat$us[, scal], Country = "US"), error = function(e) NULL))
+  conf <- cfa(paste0("F =~ ", paste0(scal, collapse = "+")), std.lv = TRUE, data = tmpdat, group = "Country")
+  metr <- cfa(paste0("F =~ ", paste0(scal, collapse = "+")), std.lv = TRUE, data = tmpdat, group = "Country", group.equal = "loadings")
+  tst <- anova(conf, metr)
+  unlist(tst[2, c("Chisq diff", "Df diff", "Pr(>Chisq)")])
+})
+```
+
+```{r tabscaleuse, results = "asis"}
+invisible(lapply(names(cfas), function(cntr){
+  print({kbl(cfas[[cntr]], caption = paste0("Scale reliability ", cntr)) |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+})}))
+```
+
+We further examined measurement invariance across countries,
+and found that metric invariance did not hold for these scales: `r paste0(colnames(meas_inv)[meas_inv[3, ] < .05], collapse = ", ")`.
+This lack of measurement invariance must be taken into account when aggregating evidence across countries.
+
+```{r tabinvar, results = "asis"}
+meas_inv |>
+  kbl(caption = "Measurement invariance tests for the difference between a configural and metrically invariant model.", digits = 3) |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## Planned analyses
+
+```{r, code=xfun::read_utf8('../analysis.R')}
+
+```
+
+```{r tabresults, results = "asis"}
+interpret_bf <- function(bf){
+  sapply(bf, function(bf){
+    if(bf < 1/10) return("rejected")
+    if(bf < 1/3) return("rejected")
+    if(bf >= 1/3 & bf <= 3) return("inconclusive")
+    if(bf > 3 & bf <= 10) return("supported")
+  return("supported")
+  })
+}
+invisible(lapply(1:length(bayesfactors), function(h){
+  print({
+    kbl(est_for_hyp[[h]], caption = paste0("Parameters used to test hypothesis ", h, ". Evidence in favor of the hypothesis: BF = ", formatC(bayesfactors[h], digits = 3, format = "f"), " (", interpret_bf(bayesfactors[h]), ")."), digits = 3) |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+})}))
+```
+
+According to these analyses, hypotheses `r paste0(which(bayesfactors > 3), collapse = ", ")` were supported.
+
+These results are qualified by the relatively poor psychometric properties of some scales,
+and the poor model fit of the CFA estimated in the three countries (see below).
+Inspection of the modification indices suggested that adding cross-loadings might improve model fit,
+but with the low number of indicators per factor this might compromise interpretability.
+A likely explanation for the relatively poor model fit is the low explained variance in some items (see Table 3).
+
+```{r tabfits, results = "asis"}
+fit_17 <- t(sapply(res_list17, fitmeasures))
+fit_17 <- fit_17[, c("npar", "chisq", "df", "cfi", "tli", "rmsea", "srmr")]
+kbl(fit_17, caption = paste0("Fit of models used to test hypotheses 1-7."), digits = 3) |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
