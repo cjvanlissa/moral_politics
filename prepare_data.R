@@ -45,3 +45,26 @@ rev_these <- which(unlist(reverse_coded[["us"]]))
 maxval <- sapply(us[rev_these], max, na.rm = TRUE) + 1
 us[rev_these] <- mapply(function(c, vec){c-vec}, c = maxval, vec = us[rev_these])
 closed_data(us, synthetic = FALSE)
+
+
+tris <- read.csv("aita_mac_secs 16.06.csv", stringsAsFactors = FALSE)
+names(tris) <- tolower(names(tris))
+
+scales_tris <- c(list(
+  secs_soc = c("secs_abortion", 
+               "secs_security", "secs_religion", "secs_marriage", 
+               "secs_traditionalvalues", "secs_familyunit", 
+               "secs_patriotism"),
+  secs_eco = c("secs_limitedgovernment", "secs_welfare", "secs_gun", "secs_fiscal", "secs_business")),
+  lapply(unique(cut(1:21, 7)), function(i) grep("^mac", names(tris), value = T)[which(cut(1:21, 7) == i)])
+)
+names(scales_tris)[-c(1:2)] <- names(scales_list$dk[-c(1:2)])
+
+tris <- tris[unlist(scales_tris)]
+
+rev_these <- c("secs_abortion", "secs_welfare")
+maxval <- sapply(tris[rev_these], max, na.rm = TRUE) + 1
+tris[rev_these] <- mapply(function(c, vec){c-vec}, c = maxval, vec = tris[rev_these])
+
+names(tris) <- unlist(lapply(names(scales_tris), function(i){paste0(i, "_", 1:length(scales_tris[[i]]))}))
+closed_data(tris, synthetic = FALSE)
