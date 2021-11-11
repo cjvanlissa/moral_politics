@@ -1,6 +1,8 @@
 ---
 title: "Morality, politics, and cooperation"
-output: bookdown::html_document2
+output:
+  bookdown::html_document2:
+    keep_md: yes
 date: '`r format(Sys.time(), "%d %B, %Y")`'
 bibliography: references.bib
 knit: worcs::cite_all
@@ -21,7 +23,7 @@ library(semTools)
 library(kableExtra)
 library(bookdown)
 library(psych)
-dat <- load_data(to_envir = FALSE)
+dat <- load_data(to_envir = FALSE)[1:3]
 source("../scales_list.R")
 scales_list <- lapply(scales_list, function(i){
   tmp <- lapply(names(i), function(j){ paste0(j, "_", 1:length(i[[j]]))})
@@ -212,3 +214,28 @@ kbl(fit_17, caption = paste0("Fit of models used to test hypotheses 1-7."), digi
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
+
+# Exploratory analyses
+
+The preceding analyses were conceptually replicated in a fourth sample.
+Note that this sample used moral relevance scales instead of moral judgment scales.
+
+```{r, include = FALSE, code=xfun::read_utf8('../analysis_tris.R')}
+
+```
+
+This replication offered no support for any hypothesis except H`r which(bayesfactors_tris > 3)`:
+
+```{r, results = "asis"}
+trisfit <- unlist(table_fit(res_tris)[1, c("chisq", "cfi", "tli", "rmsea", "srmr")])
+for(i in 1:length(bayesfactors_tris)){
+  cat(
+    "* $BF_{h", i, "} = ", formatC(bayesfactors_tris[i], digits = 3, format = "f"),
+    "$, based on parameters ", 
+    paste0(names(est_for_hyp_tris[[i]]), " (", formatC(est_for_hyp_tris[[i]], digits = 3, format = "f"), ")", collapse = ", "), ".  \r\n",
+    sep = ""
+  )
+}
+```
+
+The fit of this model was also poor, though somewhat better than for the confirmatory analyses; `r paste0(names(trisfit), " = ", formatC(trisfit, digits = 3, format = "f"), collapse = ", ")`.
