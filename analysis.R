@@ -4,6 +4,7 @@ library(BFpack)
 library(ggplot2)
 library(tidySEM)
 set.seed(22)
+dat <- dfs
 sample_sizes <- sapply(dat, nrow) #obtain sample sizes per country
 hypotheses <- list("(fam_secs_soc_us, fam_secs_eco_us, fam_sepa_soc_dk, fam_sepa_eco_dk, fam_secs_soc_nl, fam_secs_eco_nl, fam_sepa_soc_nl, fam_sepa_eco_nl) > .1",
                    "(grp_secs_soc_us, grp_secs_eco_us, grp_sepa_soc_dk, grp_sepa_eco_dk, grp_secs_soc_nl, grp_secs_eco_nl, grp_sepa_soc_nl, grp_sepa_eco_nl) > .1",

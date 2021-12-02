@@ -18,14 +18,14 @@ hypotheses <- list("(fam_secs_us, fam_sic_us, fam_sepa_dk, fam_sic_dk, fam_secs_
                    "(fai_secs_us, fai_sic_us, fai_sepa_dk, fai_sic_dk, fai_secs_nl, fai_sepa_nl, fai_sic_nl) < -.1",
                    "(pro_secs_us, pro_sic_us, pro_sepa_dk, pro_sic_dk, pro_secs_nl, pro_sepa_nl, pro_sic_nl) > .1"
                    )
-
+#adds to hypothesis a list of hypotheses for each country seperately
 hypotheses <- c(
   hypotheses,
   lapply(hypotheses, function(x){ gsub("[a-z_]+?_(dk|nl)[, ]{0,2}", "", x) }),
   lapply(hypotheses, function(x){ gsub("[a-z_]+?_(us|nl)[, ]{0,2}", "", x) }),
   lapply(hypotheses, function(x){ gsub("[a-z_]+?_(dk|us)[, ]{0,2}", "", x) })
 )
-hypotheses <- lapply(hypotheses, function(x){ gsub(", )", ")", x, fixed = T) })
+hypotheses <- lapply(hypotheses, function(x){ gsub(", )", ")", x, fixed = T) }) #rm redundant white spaces
 
 pop_mod_mac <- ' 
 # Mac loadings
@@ -183,32 +183,43 @@ sim_results <- replicate(2, {
       colnames(Sigma) <- rownames(Sigma) <- names(estimates)
       list(est = estimates, sig = Sigma)
     })
-    est <- unlist(lapply(res, `[[`, 1))
+    est <- unlist(lapply(res, `[[`, 1)) #obtain loadings for all countries
     sig <- as.matrix(Matrix::bdiag(lapply(res, `[[`, 2)))
-    colnames(sig) <- rownames(sig) <- names(est)
+    colnames(sig) <- rownames(sig) <- names(est) #varcov matrix
     
-    bf <- lapply(hypotheses, BF,
-                 x = est,
+    bf <- lapply(hypotheses, BF, #obtain bfs for all hypotheses together and each country seperately
+                 x = est, #ests = all loadings on outcomes
                  Sigma = sig,
                  n = sum(sample_sizes))
     
-    sapply(bf, function(x){x$BFmatrix_confirmatory[1,2]})
+    sapply(bf, function(x){x$BFmatrix_confirmatory[1,2]}) #provides BFcu for every hypothesis
   }, error = function(e){
     return(rep(NA, length(hypotheses)))
   })
   out_cors
 })
 })
+#sim_conditions is a list of the dataframes containing all 100 BFs for every hypothesis. Where each list element
+#is a different condition (in this case R = 0 tm R = 0.3)
 
 #saveRDS(sim_results, "sim_results_2.RData")
 #saveRDS(sim_conditions, "sim_conditions.RData")
-#sim_results <- readRDS("sim_results_3.RData")
+sim_conditions <- readRDS("sim_conditions.RData")
+sim_results <- readRDS("./Sim Results/sim_results_3.RData") 
+
+#obtains dataframe where 'value' is one BF out of 100 for that hypothesis, 'median' = median of that hypothesis. 
+#'hypothesis' = the tested (out of 9 (now 7))' hypothesis, the median bf for that hypothesis and prop that BF > 3
+#in the row of sim_results that represents that hypothesis.
+#so H1, BFmed = 0.00, p(BF > 3) = 0.00 = H1 has median 0 and prop of BF's in sim_results where the BF of that
+#hypothesis > 3 is 0
+# "R" seems to refer to true_es (so true effect sizes) where higher R means higher BF for the hypotheses
+# since we test if hyp > .1, then BF is larger when R > .1
 df_plot <- do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
   sim_results <- sim_conditions[[thiscond]]
   df_plot <- do.call(rbind, lapply(1:nrow(sim_results), function(i){
-    themed <- median(sim_results[i, ], na.rm = TRUE)
-    prop3 <- na.omit(sim_results[i, ])
-    prop3 <- sum(prop3 >3)/length(prop3)
+    themed <- median(sim_results[i, ], na.rm = TRUE) #median of every row
+    prop3 <- na.omit(sim_results[i, ]) #omit NA from row
+    prop3 <- sum(prop3 >3)/length(prop3) #proportion BFs larger than 3
     data.frame(Hypothesis = paste0("H", i, ", BFmed = ", formatC(themed, 2, format = "f"), ", p(BF > 3) = ", formatC(prop3, 2, format = "f")),
                Value = sim_results[i, ],
                Median = median(sim_results[i, ], na.rm = TRUE))
@@ -229,20 +240,26 @@ ggplot(df_plot, aes(x = Value))+
 
 apply(sim_results, 1, function(x){
   x <- na.omit(x)
-  sum(x >3)/length(x)})
+  sum(x >3)/length(x)}) #proportions where BF rows are larger than 3
 
-
+#for every condition, append 3 values (median, sd and prop) for every hypothesis
+# = conditions*values*hypothesis = 4*3*9 = 108
+#each column is hypothesis, each row is condition/value combo
+#so first row = median BF for all hypotheses when R = 0
+#second row = sd BF for all hypotheses when R = 0
+#third = prop(BF > 3) when R = 0
+#fourth is median BF again, but when R = 0.1
 df_plot <- do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
-  sim_results <- sim_conditions[[thiscond]]
+  sim_results <- sim_conditions[[thiscond]] #obtain BFs 100 BFs per hypothsis for specific condition
   #browser()
   sapply(1:nrow(sim_results), function(i){
-    prop3 <- na.omit(sim_results[i, ])
+    prop3 <- na.omit(sim_results[i, ]) #obtain vector of BFs without NA's
     c(median(sim_results[i, ], na.rm = TRUE), sd(sim_results[i, ], na.rm = TRUE), sum(prop3 >3)/length(prop3))
   })
   
 }))
 
-
+#obtains power for every hypothesis where every columns is a true_es
 tab_power <- data.frame(t(do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
   sim_results <- sim_conditions[[thiscond]]
   #browser()
@@ -258,7 +275,7 @@ rownames(tab_power) <- paste0("Hypothesis ", 1:length(hypoth))
 
 write.csv(tab_power, "tab_power.csv")
 
-tmp <- sim_conditions[[3]][, 1]
+tmp <- sim_conditions[[3]][, 1] #obtain one iteration of BFs for all hypothesis
 tmp[seq(from = 8, to = 28, by = 7)]
 
 prod(tmp[seq(from = 8, to = 28, by = 7)])

@@ -7,7 +7,7 @@ library(worcs)
 library(foreign)
 library(haven)
 source("scales_list.r")
-nl <- read.spss("nl.sav", to.data.frame = TRUE, use.value.labels = TRUE)
+nl <- read.spss("nl.sav", to.data.frame = TRUE, use.value.labels = TRUE) #data of nl
 names(nl) <- tolower(names(nl))
 all(unlist(scales_list$nl) %in% names(nl))
 unlist(scales_list$nl)[!(unlist(scales_list$nl) %in% names(nl))]
