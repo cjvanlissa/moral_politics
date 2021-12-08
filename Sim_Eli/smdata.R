@@ -6,6 +6,7 @@ simdata <- function(es,var_n, n){
   # 1 can be replaced with some value for the desired variance of the outcome and predictors.
   S <- diag(var_n) * 1 #predictors have variances of 1
   #diag(S)[-1] <- tau2 #something like this could add some more noise to the predictors
+  #diag(S)[1] <- tau2 #add more noise to outcome measurement
   
   #this now sets all covariances s_y, s_xi to the same value. we can add some variability in the covariances
   S[,1][-1] <- es #covariances with outcome variable 
