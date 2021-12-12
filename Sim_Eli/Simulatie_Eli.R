@@ -5,30 +5,18 @@ rm(list=ls(all.names = T))
 cat("\014")
 source('./Sim_Eli/smdata.R')
 
-### MINI SIMULATION CAN BE FOUND ON LINE 112 AND FURTHER ###
+#results of mini simulation, outcomes are BF_together and Geometric product of BFs_individual
+#Evidence Rate and Stability Rate are measures of validity for 'Geometric product'
+results <- readRDS("./Sim_Eli/results_Eli2.RData")
 
-#specify hyperparameters
-HyperPar <- list(
-  es = c(0.1,0.2,0.3), #true effect size = true correlation with outcome
-  #tau2 = c(0, 0.1, 0.3), #variance of measurements. maybe not necessary since correlations are used
-  n = c(50,100,200), #sample size (can be divided by I to obtain different sample sizes per group )
-  k = c(3,4,5), #number of groups
-  hyp_val = c(0.1,0.2,0.3), #thresholds for informative hypotheses
-  #hyp_n = c(5,6,7) #number of hypotheses
-  var_n = c(2,4,6) #numer of predictors
-)
-
-#expand into grid
-conditions <- do.call(expand.grid, HyperPar)
-set.seed(6164900)
-conditions$seeds <- sample(1:1E5, nrow(conditions), replace = F )
+### MINI SIMULATION CAN BE FOUND ON LINE 133 AND FURTHER ###
 
 #to test
-var_n <- 2
-n <- 200
+var_n <- 3
+n <- 100
 hyp_val <- 0.1
 es <- 0.1
-k <- 3
+k <- 10
 
 
 #simulate data for every group
@@ -46,6 +34,7 @@ res <- lapply(dfs, function(x){
 })
 names(res) <- paste0('group', 1:k)
 
+#prepare for bain()
 res.i <- lapply(res, function(x){
   ests <- x[,1] #extract estimate
   sig <- diag(x[,2]) #extract varcov matrix
@@ -54,16 +43,26 @@ res.i <- lapply(res, function(x){
 })
 names(res.i) <- paste0("group", 1:k)
 
-#we give different names to r if it is in a different group, so that we can get the BF_together
-# for(i in 1:length(res.i)){
-#   names(res.i[[i]][["est"]]) <- paste0("g", i, "r", 1:var_n)
-# }
+#we could also use lm() instead of cor()
+# res <- lapply(dfs, function(x){
+#   fit.lin <- lm(y ~ .,data = as.data.frame(x))
+#   return(fit.lin)
+# })
+# names(res) <- paste0('group', 1:k)
+# 
+# #obtain for each group and every correlation the bayes factor
+# bf_individual <- lapply(res, function(x){
+#   bf <- bain(x, paste(paste0(sprintf("X%02d", 1:var_n), ">", hyp_val), collapse = '&'))
+#   #names(bf) <- paste0(names(ests))
+#   return(bf)
+# })
+
 
 #obtain for each group and every correlation the bayes factor
-bf_individual <- lapply(res.i, function(x){
+bf_individual <- lapply(res.i, function(x){ #for all groups
   ests <- x[['est']] #extract estimate
   sig <- x[['sig']] #extract varcov matrix
-  bf <- lapply(paste0(names(ests), ">", hyp_val), #evaluate values on some hypothesized value
+  bf <- lapply(paste0(names(ests), ">", hyp_val), #evaluate each parameter on some hypothesized value for every group
                           bain, #function bain::bain()
                           x = ests,
                           Sigma = sig,
@@ -74,26 +73,37 @@ bf_individual <- lapply(res.i, function(x){
 #give appropriate names
 names(bf_individual) <- paste0("group", 1:k)
 
-#obtain fit of hypotheses
-fit.i <- lapply(bf_individual, function(x){
-  sapply(x, function(y){y$fit$Fit[1]})
-})
+#obtain BF_ic for every group and every hypothesis
+BFs <- matrix(NA, nrow = k, ncol = var_n) # create output table with N rows and 2 columns
+colnames(BFs) <- paste0("BF: ", sprintf("X%02d", 1:var_n), ">", hyp_val)
+rownames(BFs) <- paste0("group", 1:k)
+for(i in 1:k){
+  for(j in 1:var_n){
+    BFs[i,j] <- bf_individual[[i]][[j]]$fit$BF.c[1] #BF of Hi against Hc
+  }
+}
+results_i <- gPBF(BFs)
+results_i$GPBF[1,] #Geometric Product is average relative evidence for Hi over Hc for the groups.
+#if 1, This means equal support for both Hi and Hc
+results_i$GPBF[2,] #Evidence Rate = proportion of groups that favor the hypothesis that GmPBF also supports. 
+#If 0.5, half of the groups have BFac < gPBF and half have BFac > gPBF
+results_i$GPBF[3,] #Stability rate = proportion of groups that provide even stronger evidence for Hi vs Hc 
+#than gmPBF suggests.
+#if 0.5, half of groups provide stronger evidence than gPBF suggest, half provide weaker evidence. 
 
-#obtain BF of hypotheses.
-BF.i <- lapply(bf_individual, function(x){
-  sapply(x, function(y){y$fit$BF[1]})
-})
 
-#now we need BF together which is (group1_r1, group2_r2, group3_r2) > hyp_val
-#so now we dont extract estimates per group apart, but together
-res.t <- sigs <- nams <- c() #
+
+#now we need BF together which is (group1_rj, group2_rj, groupk_rj) > hyp_val
+#equivalent to group1_rj > hyp_val & group2_rj > hyp_val & ...  & groupk_rj > hyp_val
+#so now we dont extract estimates per group apart, but together on one parameter estimates hypothesized value
+#prepare
+res.t <- sigs <- c() 
 for(i in 1:length(res)){
   res.t <- cbind(res.t,res[[i]][,1]) #matrix with correlations in rows, groups in columns
   sigs <- cbind(sigs, res[[i]][,2]) #matrix with se's in rows, groups in columns
 }
 colnames(res.t) <- paste0("group", 1:k) #for clarity give names
 
-#the hypotheses are now (group1, group2, group3) > hyp_val where it is first run for r1, then for r2 etc...
 hyps <- paste0("(", paste0(colnames(res.t), collapse = ", "), ") > ", hyp_val)
 
 #create bf_together object to obtain the BFs for the (group1, group2, group3) > hyp_val hypothesis
@@ -103,13 +113,19 @@ for(i in 1:var_n){
 }
 names(bf_together) <- paste0('r', 1:var_n) #names for clarity
 
-#obtain fit of hypotheses
-fit.t <- sapply(bf_together, function(x){x$fit$Fit[1]})
+BFs.t <- matrix(NA, nrow = var_n, ncol = 2) # create output table with N rows and 2 columns
+colnames(BFs.t) <- c("BF_ic", "BF_iu")
+rownames(BFs.t) <- paste0("BF.t: ", sprintf("X%02d", 1:var_n), ">", hyp_val)
+for(i in 1:var_n){
+    BFs.t[i,1] <- bf_together[[i]]$fit$BF.c[1] #BF of Hi against Hc
+    BFs.t[i,2] <- bf_together[[i]]$fit$BF.u[1] #BF of Hi against Hu
+  }
 
-#obtain BF of hypotheses.
-BF.t <- sapply(bf_together, function(x){x$fit$BF[1]})
+t(BFs.t) #BF together
+results_i[["GPBF"]][1,] #GPBF individual
 
-result <- list(fit.i = fit.i, BF.i = BF.i, BF.t = BF.t, fit.t = fit.t)
+results <- cbind(as.vector(t(BFs.t)), t(results_i[["GPBF"]]))
+colnames(results) <- c("BF_together", colnames(results[,2:4]))
 
 
 
@@ -118,10 +134,9 @@ result <- list(fit.i = fit.i, BF.i = BF.i, BF.t = BF.t, fit.t = fit.t)
 #########################
 
 ## put in function
-BFs <- function(es, var_n, n, hyp_val, k, seed = 6164900){
+BFs <- function(es, var_n, n, hyp_val, k){
+
   #simulate data for every group
-  set.seed(seed)
-  
   dfs <- lapply(1:k, function(i){
     simdata(es, var_n, n) 
   })
@@ -136,6 +151,7 @@ BFs <- function(es, var_n, n, hyp_val, k, seed = 6164900){
   })
   names(res) <- paste0('group', 1:k)
   
+  #prepare for bain()
   res.i <- lapply(res, function(x){
     ests <- x[,1] #extract estimate
     sig <- diag(x[,2]) #extract varcov matrix
@@ -144,12 +160,11 @@ BFs <- function(es, var_n, n, hyp_val, k, seed = 6164900){
   })
   names(res.i) <- paste0("group", 1:k)
   
-  
-  #obtain for each group and every correlation the bayes factor
-  bf_individual <- lapply(res.i, function(x){
+  #obtain individual Bfs
+  bf_individual <- lapply(res.i, function(x){ #for all groups
     ests <- x[['est']] #extract estimate
     sig <- x[['sig']] #extract varcov matrix
-    bf <- lapply(paste0(names(ests), ">", hyp_val), #evaluate values on some hypothesized value
+    bf <- lapply(paste0(names(ests), ">", hyp_val), #evaluate each parameter on some hypothesized value
                  bain, #function bain::bain()
                  x = ests,
                  Sigma = sig,
@@ -160,69 +175,84 @@ BFs <- function(es, var_n, n, hyp_val, k, seed = 6164900){
   #give appropriate names
   names(bf_individual) <- paste0("group", 1:k)
   
-  #obtain fit of hypotheses
-  fit.i <- lapply(bf_individual, function(x){
-    sapply(x, function(y){y$fit$Fit[1]})
-  })
+  #obtain BF_ic for every group and every hypothesis
+  BFs <- matrix(NA, nrow = k, ncol = var_n) # create output table with N rows and 2 columns
+  colnames(BFs) <- paste0("BF: ", sprintf("X%02d", 1:var_n), ">", hyp_val)
+  rownames(BFs) <- paste0("group", 1:k)
+  for(i in 1:k){
+    for(j in 1:var_n){
+      BFs[i,j] <- bf_individual[[i]][[j]]$fit$BF.c[1] #BF of Hi against Hc
+    }
+  }
+  #obtain geometric mean, ER and SR
+  results_i <- gPBF(BFs)
   
-  #obtain BF of hypotheses.
-  BF.i <- lapply(bf_individual, function(x){
-    sapply(x, function(y){y$fit$BF[1]})
-  })
-  
-  res.t <- sigs <- nams <- c()
+  #prepare for BF together
+  res.t <- sigs <- c() 
   for(i in 1:length(res)){
-    res.t <- cbind(res.t,res[[i]][,1])
+    res.t <- cbind(res.t,res[[i]][,1]) 
     sigs <- cbind(sigs, res[[i]][,2])
   }
-  colnames(res.t) <- paste0("group", 1:k)
+  colnames(res.t) <- paste0("group", 1:k) 
+  
   hyps <- paste0("(", paste0(colnames(res.t), collapse = ", "), ") > ", hyp_val)
   
+  #create bf_together object to obtain the BFs for the (group1, group2, group3) > hyp_val hypothesis
   bf_together <- list()
   for(i in 1:var_n){
     bf_together[[i]] <- bain(res.t[i,], hyps, n = n , Sigma = diag(sigs[i,]))
   }
-  names(bf_together) <- paste0('r', 1:var_n)
+  names(bf_together) <- paste0('r', 1:var_n) #names for clarity
   
-  #obtain fit of hypotheses
-  fit.t <- sapply(bf_together, function(x){x$fit$Fit[1]})
+  BFs.t <- matrix(NA, nrow = var_n, ncol = 1) # create output table with N rows and 2 columns
+  colnames(BFs.t) <- paste0("k = ", k)
+  rownames(BFs.t) <- paste0("BF.t: ", sprintf("X%02d", 1:var_n), ">", hyp_val)
+  for(i in 1:var_n){
+    BFs.t[i,1] <- bf_together[[i]]$fit$BF.c[1] #BF of Hi against Hc
+  }
   
-  #obtain BF of hypotheses.
-  BF.t <- sapply(bf_together, function(x){x$fit$BF[1]})
+  t(BFs.t) #BF together
+  results_i[["GPBF"]][1,] #GPBF individual
   
-  result <- list(fit.i = fit.i, BF.i = BF.i, BF.t = BF.t, fit.t = fit.t,
-                 conds = c(es, var_n, n, hyp_val, k, seed))
+  results <- cbind(as.vector(t(BFs.t)), t(results_i[["GPBF"]]))
+  colnames(results) <- c("BF_together", colnames(results[,2:4]))
+  
+  
+  result <- list(result = results,
+                 conds = c(es, var_n, n, hyp_val, k))
   return(result)
 }
 
 #specify hyperparameters
 HyperPar <- list(
-  es = c(0, 0.4), #true effect size = true correlation with outcome
-  #tau2 = c(0, 0.1, 0.3), #variance of measurements. maybe not necessary since correlations are used
+  es = c(0, 0.2, 0.4), #true effect size = true correlation with outcome
+  #tau2 = c(0, 0.1, 0.3), #reliability of measurement
   n = c(200), #sample size (can be divided by I to obtain different sample sizes per group )
-  k = c(3, 5), #number of groups
+  k = c(5, 10), #number of groups
   hyp_val = c(0.2), #thresholds for informative hypotheses
   #hyp_n = c(5,6,7) #number of hypotheses
-  var_n = c(2,4) #numer of predictors
+  var_n = c(3) #numer of predictors
 )
 
 #expand into grid
 conditions <- do.call(expand.grid, HyperPar)
-set.seed(6164900)
-conditions$seeds <- sample(1:1E5, nrow(conditions), replace = F )
 conditions$id <- 1:nrow(conditions)
 
 #run simulation
+set.seed(6164900)
 results <- apply(conditions, 1, function(x){
   print(paste0(x['id'], '/', nrow(conditions),  ' running...'))
-  BFs(es = x['es'], var_n = x['var_n'], n = x['n'], hyp_val = x['hyp_val'], k = x['k'], seed = x['seeds'] )
+  BFs(es = x['es'], var_n = x['var_n'], n = x['n'], hyp_val = x['hyp_val'], k = x['k'])
 })
 names(results) <- sprintf("sim%02d", 1:length(results))
-saveRDS(results, file = "./Sim_Eli/results_Eli1.RData")
+saveRDS(results, file = "./Sim_Eli/results_Eli2.RData")
+
+
+
 
 #obtain bench time and memory of object
 Time <- bench::bench_time(apply(conditions, 1, function(x){
-  BFs(es = x['es'], var_n = x['var_n'], n = x['n'], hyp_val = x['hyp_val'], k = x['k'], seed = x['seeds'] )
+  BFs(es = x['es'], var_n = x['var_n'], n = x['n'], hyp_val = x['hyp_val'], k = x['k'])
 })) #takes 1.58 seconds on my computer for 8 simulations
 format(object.size(results), 'Kb') 
 

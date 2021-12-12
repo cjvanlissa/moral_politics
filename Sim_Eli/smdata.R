@@ -15,3 +15,22 @@ simdata <- function(es,var_n, n){
   colnames(df) <- c('y', sprintf("X%02d", 1:(var_n-1))) #give names
   return(df)
 }
+
+#product BF
+gPBF <- function(BFs){
+  N  <- ifelse(is.null(nrow(BFs)), length(BFs), nrow(BFs)) #to distinguish between vectors and matrices
+  
+  res <- apply(BFs, 2, function(x){
+    GP <- prod(x) ^ (1 / N) #Geometric mean
+    ER <- abs((GP < 1) - sum(x > 1)/N) #Evidence Rate
+    SR <- ifelse(GP < 1, #Stability Rate
+                 sum(x < GP) / N, 
+                 sum(x > GP) / N)
+    c(GP, ER, SR)
+  })
+  
+  rownames(res) <- c("Geometric Product", "Evidence Rate", "Stability Rate")
+  out <- list("GPBF" = res, "BFs" = BFs, "N" = N)
+  class(out) <- "gPBF"
+  return(out)
+}
