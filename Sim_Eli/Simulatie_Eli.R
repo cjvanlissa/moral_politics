@@ -102,7 +102,9 @@ for(i in 1:length(res)){
   res.t <- cbind(res.t,res[[i]][,1]) #matrix with correlations in rows, groups in columns
   sigs <- cbind(sigs, res[[i]][,2]) #matrix with se's in rows, groups in columns
 }
-colnames(res.t) <- paste0("group", 1:k) #for clarity give names
+colnames(res.t) <- paste0("group", 1:k) 
+colnames(sigs) <- paste0("group", 1:k) 
+
 
 hyps <- paste0("(", paste0(colnames(res.t), collapse = ", "), ") > ", hyp_val)
 
@@ -225,11 +227,11 @@ BFs <- function(es, var_n, n, hyp_val, k){
 
 #specify hyperparameters
 HyperPar <- list(
-  es = c(0, 0.2, 0.4), #true effect size = true correlation with outcome
+  es = c(0, 0.1, 0.2), #true effect size = true correlation with outcome
   #tau2 = c(0, 0.1, 0.3), #reliability of measurement
-  n = c(200), #sample size (can be divided by I to obtain different sample sizes per group )
-  k = c(5, 10), #number of groups
-  hyp_val = c(0.2), #thresholds for informative hypotheses
+  n = c(300), #sample size (can be divided by I to obtain different sample sizes per group )
+  k = c(10), #number of groups
+  hyp_val = c(0, 0.1, 0.2), #thresholds for informative hypotheses
   #hyp_n = c(5,6,7) #number of hypotheses
   var_n = c(3) #numer of predictors
 )
@@ -246,7 +248,6 @@ results <- apply(conditions, 1, function(x){
 })
 names(results) <- sprintf("sim%02d", 1:length(results))
 saveRDS(results, file = "./Sim_Eli/results_Eli2.RData")
-
 
 
 
