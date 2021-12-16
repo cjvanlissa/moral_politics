@@ -82,7 +82,6 @@ for(i in 1:k){
 results_i <- gPBF(BFs)
 results_i$GPBF 
 
-
 #prepare for BF_together; (group1_rj, group2_rj, ...,  groupk_rj) > hyp_val
 res.t <- sigs <- c() 
 for(i in 1:length(res)){
@@ -121,18 +120,24 @@ print(results)
 results <- readRDS("./Sim_Eli/results_Eli2.RData")
 results[[2]] #this is what the output for 1 simulation is.
 
-#Question:
-#The goal of the simulation is to test whether the product Bayes Factor works. 
-#We do so by taking the pBF over the individual BFs and check if it comes close to the true BF
-
-# 1.) How to calculate the true BF to compare the pBF against?
-
-# 2.) What is the added value of BF_together? 
-#     I understand that this checks if group1_r & group2_r & ... & groupk_r > hyp_val. And I see that
-#     as the number of groups increases to evaluate a parameter on, the less likely it becomes that 
-#     the parameter for all groups > hyp.val. 
-#     Does it serve as a benchmark to compare pBF against?
+# pop_effect <- ifelse(es >= hyp_val, 1, 0)
+# if(pop_effect == 1 & BF < 3){
+#   performance <- 0
+# } else if(pop_effect == 1 & BF > 3){
+#   performance <- 1
+# } else if(... etc)
 
 
 
+# Simuleer blok condities en simuleer data voor elke conditie.
+# Elk algoritme produceert een BFic en BFiu (output)
+# - (algoritmes staan o.a. in analysis.R en zijn bv prod(BF_individual), BF_together, gPBF))
+# We checken dus Hi tegen zowel Hc als Hu
+# De condities (en de daaruit volgende data) vertellen of de hypothese wel of niet kloppen.
+# Als de hypothese klopt, dan heeft het algoritme het goed gedaan als hij BF > 3 produceert. 
+# ALs de hypothese niet klopt, dan moet BF < 3.
+
+# BF_together lijkt afhankelijk van het aantal groepen. (misschien manier vinden om daarvoor te corrigeren zoals geometric mean ipv arithmetic mean.)
+# Andreas Brandmeijer = computer scientist die ook veel statistiek doet. Mail Caspar als je met hem wil praten
+# Caspar heeft Pema aangepast, goed om te bekijken
 
