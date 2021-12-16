@@ -212,6 +212,7 @@ out_9 <-
     tmp$BFtu_confirmatory[1]
     
   }
+
 bayesfactors_tris <- c(out_cors, 1 / out_8, 1 / out_9)
 est_for_hyp_tris <- lapply(hypotheses, function(h) {
   pars = gsub("_us", "", bain:::params_in_hyp(h))
@@ -220,3 +221,7 @@ est_for_hyp_tris <- lapply(hypotheses, function(h) {
   }))
   tmp
 })
+
+saveRDS(bayesfactors_tris, "bayesfactors_tris.RData")
+saveRDS(est_for_hyp_tris, "est_for_hyp_tris.RData")
+saveRDS(res_tris, "res_tris.RData")

@@ -14,6 +14,7 @@ knit: worcs::cite_all
 # Then, uncomment the line below to load the original or synthetic data
 # (whichever is available), to allow anyone to reproduce your code:
 library("worcs")
+run_everything = FALSE
 knitr::opts_chunk$set(echo = FALSE, results = "hide", message = FALSE, warning = FALSE)
 options(knitr.kable.NA = '')
 library(ggplot2)
@@ -23,6 +24,7 @@ library(semTools)
 library(kableExtra)
 library(bookdown)
 library(psych)
+library(knitr)
 dat <- load_data(to_envir = FALSE)[1:3]
 source("../scales_list.R")
 scales_list <- lapply(scales_list, function(i){
@@ -30,6 +32,9 @@ scales_list <- lapply(scales_list, function(i){
   names(tmp) <- names(i)
   tmp
   })
+```
+
+```{r cfas, eval = run_everything}
 set.seed(1)
 cfas <- lapply(names(scales_list), function(cnt){
   results <- t(sapply(scales_list[[cnt]], function(scal){
@@ -51,6 +56,10 @@ cfas <- lapply(names(scales_list), function(cnt){
   }))
 })
 names(cfas) <- names(scales_list)
+saveRDS(cfas, "cfas.RData")
+```
+```{r}
+cfas <- readRDS("cfas.RData")
 ```
 
 ## Necessary deviations from preregistration
@@ -59,9 +68,11 @@ When attempting to conduct the preregistered analyses,
 the model did not converge in one of the datasets (NL).
 We examined individual CFAs for the included scales to determine potential
 sources of misspecification.
-These analyses, summarized below, indicated that several scales in that dataset
-displayed evidence of not being unidimensional or had no factors with Eigenvalues greater than would be expected by random chance (see column 'Factors', which is based on Horn's parallel analysis, 1965),
-had poor reliability (estimated using McDonald's Omega, which is calculated from the factor loadings and does not assume that all factor loadings are identical as Cronbach's alpha does).
+These analyses indicated that the scale `secs_eco` in that dataset
+had no factors with Eigenvalues greater than would be expected by random chance (see column 'Factors', which is based on Horn's parallel analysis, 1965),
+and had poor reliability (estimated using McDonald's Omega, which is calculated from the factor loadings and does not assume that all factor loadings are identical as Cronbach's alpha does).
+After deleting this scale, the CFA model converged.
+It was therefore deemed necessary to remove this scale. 
 
 ```{r tabscale, results = "asis"}
 invisible(lapply(names(cfas), function(cntr){
@@ -70,9 +81,9 @@ invisible(lapply(names(cfas), function(cntr){
 })}))
 ```
 
-To understand these issues better, we performed exploratory factor analysis on scales that showed indications of being non-unidimensional in at least one country.
+<!-- To understand these issues better, we performed exploratory factor analysis on scales that showed indications of being non-unidimensional in at least one country. -->
 
-```{r notunidim, results = "asis"}
+```{r notunidim, results = "asis", include = FALSE}
 allscales <- do.call(c, scales_list)
 nfacs <- as.integer(do.call(c, lapply(cfas, function(i){i[, 'Factors']})))
 check_these <- nfacs > 1
@@ -99,32 +110,20 @@ for(scal in these_scales){
 }
 ```
 
-These factor analyses suggest that items 3-5 of sepa_soc loaded most consistently on the same factor.
-Similarly, items 3-5 of sepa_eco loaded most consistently on the same factor.
-For secs_soc, only items 4-5 loaded consistently high on the same factor.
-For secs_eco, no items loaded consistently high on the same factor.
-We removed items not consistently loading on one factor,
-and dropped secs_eco entirely.
-We applied these changes consistently across countries.
+<!-- These factor analyses suggest that items 3-5 of sepa_soc loaded most consistently on the same factor. -->
+<!-- Similarly, items 1-3 of sepa_eco loaded most consistently on the same factor. -->
+<!-- For secs_soc, only items 4-5 loaded consistently high on the same factor. -->
+<!-- For secs_eco, no items loaded consistently high on the same factor. -->
+<!-- We removed items not consistently loading on one factor, -->
+<!-- and dropped secs_eco entirely. -->
+<!-- We applied these changes consistently across countries. -->
 
 ```{r, include=FALSE}
-use_scales <- lapply(scales_list, function(i){
-  thenames <- grepl("sepa_(soc|eco)", names(i))
-  if(any(thenames)){
-    i[which(thenames)] <- lapply(i[which(thenames)], `[`, 3:5)
-  }
-  i
-})
-use_scales <- lapply(use_scales, function(i){
-  thenames <- grepl("secs_soc", names(i))
-  if(any(thenames)){
-    i[which(thenames)] <- lapply(i[which(thenames)], `[`, 4:5)
-  }
-  i
-})
-use_scales$us$secs_eco <- NULL
+use_scales <- scales_list
 use_scales$nl$secs_eco <- NULL
+```
 
+```{r, eval = run_everything}
 set.seed(1)
 cfas <- lapply(names(use_scales), function(cnt){
   results <- t(sapply(use_scales[[cnt]], function(scal){
@@ -156,9 +155,13 @@ meas_inv <- sapply(use_scales$dk, function(scal){
   tst <- anova(conf, metr)
   unlist(tst[2, c("Chisq diff", "Df diff", "Pr(>Chisq)")])
 })
+saveRDS(cfas, "cfas2.RData")
+saveRDS(meas_inv, "meas_inv.RData")
 ```
 
 ```{r tabscaleuse, results = "asis"}
+cfas <- readRDS("cfas2.RData")
+meas_inv <- readRDS("meas_inv.RData")
 invisible(lapply(names(cfas), function(cntr){
   print({kbl(cfas[[cntr]], caption = paste0("Scale reliability ", cntr)) |>
   kable_styling(bootstrap_options = c("striped", "hover"))
@@ -177,11 +180,346 @@ meas_inv |>
 
 ## Planned analyses
 
-```{r, code=xfun::read_utf8('../analysis.R')}
+```{r, eval = run_everything}
+library(worcs)
+library(lavaan)
+library(BFpack)
+library(ggplot2)
+library(tidySEM)
+library(metafor)
+set.seed(22)
+sample_sizes <- sapply(dat, nrow)
+hypotheses <- list("(fam_secs_soc_us, fam_secs_eco_us, fam_sepa_soc_dk, fam_sepa_eco_dk, fam_secs_soc_nl, fam_secs_eco_nl, fam_sepa_soc_nl, fam_sepa_eco_nl) > .1",
+                   "(grp_secs_soc_us, grp_secs_eco_us, grp_sepa_soc_dk, grp_sepa_eco_dk, grp_secs_soc_nl, grp_secs_eco_nl, grp_sepa_soc_nl, grp_sepa_eco_nl) > .1",
+                   "(rec_secs_soc_us, rec_secs_eco_us, rec_sepa_soc_dk, rec_sepa_eco_dk, rec_secs_soc_nl, rec_secs_eco_nl, rec_sepa_soc_nl, rec_sepa_eco_nl) > .1",
+                   "(her_secs_soc_us, her_secs_eco_us, her_sepa_soc_dk, her_sepa_eco_dk, her_secs_soc_nl, her_secs_eco_nl, her_sepa_soc_nl, her_sepa_eco_nl) > .1",
+                   "(def_secs_soc_us, def_secs_eco_us, def_sepa_soc_dk, def_sepa_eco_dk, def_secs_soc_nl, def_secs_eco_nl, def_sepa_soc_nl, def_sepa_eco_nl) > .1",
+                   "(fai_secs_soc_us, fai_secs_eco_us, fai_sepa_soc_dk, fai_sepa_eco_dk, fai_secs_soc_nl, fai_secs_eco_nl, fai_sepa_soc_nl, fai_sepa_eco_nl) < -.1",
+                   "(pro_secs_soc_us, pro_secs_eco_us, pro_sepa_soc_dk, pro_sepa_eco_dk, pro_secs_soc_nl, pro_secs_eco_nl, pro_sepa_soc_nl, pro_sepa_eco_nl) > .1"
+                   )
+hypotheses[[8]] <- gsub("[<>]", "=", gsub("\\b(fam|grp)_((sepa|secs)_(soc|eco))_", "\\2ON\\1_", gsub("\\) > 0 & \\(", ", ", paste0(gsub("-?\\.1", "0", hypotheses[[1]]), " & ", gsub(".1", "0", hypotheses[[2]], fixed = TRUE)))))
+hypotheses[[9]] <- gsub("fam", "rec", gsub("grp", "fai", hypotheses[[8]], fixed = TRUE), fixed = TRUE)
+
+
+mods_cor <- lapply(names(dat), function(country){
+  cntdat <- dat[[country]][unlist(use_scales[[country]])]
+  mod <- tidy_sem(cntdat)
+  measurement(mod)
+})
+names(mods_cor) <- names(dat)
+mods_8 <- lapply(mods_cor, function(x){
+  add_paths(x,   paste0((t(outer(paste0(unique(grep("^se", x$dictionary$scale, value = TRUE)), " ~ "),
+                                 unique(grep("^(fam|grp)", x$dictionary$scale, value = TRUE)), paste0))), collapse = "\n"))
+})
+mods_9 <- lapply(mods_cor, function(x){
+  add_paths(x,   paste0((t(outer(paste0(unique(grep("^se", x$dictionary$scale, value = TRUE)), " ~ "),
+                                 unique(grep("^(rec|fai)", x$dictionary$scale, value = TRUE)), paste0))), collapse = "\n"))
+})
+
+removeothercountries <- function(hyp, cnt){
+  gsub(",\\s+\\)", "\\)", gsub(paste0("\\b[a-zA-Z_]+(?<!", cnt, ")\\b,?"), "", hyp, perl = TRUE))
+}
+
+removeparameters <- function(hyp, est){
+  params_in_hyp <- bain:::params_in_hyp(hyp)
+  est <- names(est)
+  if(any(!params_in_hyp %in% est)){
+    for(param in params_in_hyp[!params_in_hyp %in% est]){
+      hyp <- gsub(paste0("\\b", param, "\\b,?"), "", hyp)
+    }
+    hyp <- gsub(",\\s+\\)", "\\)", hyp)
+    hyp <- gsub("\\(\\s+", "\\(", hyp)
+  }
+  hyp <- gsub("\\(([a-zA-Z_]+)\\)", "\\1", hyp)
+  if(length(bain:::params_in_hyp(hyp)) == 0) return(NA)
+  hyp
+}
+
+res_list <- lapply(mods_cor, function(x){estimate_lavaan(x)})
+res_list17 <- res_list
+res <- lapply(names(res_list), function(country){
+  thisfit = res_list[[country]]
+  tab <- bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~~")
+  keep_these <- which(!grepl("~~(secs|sepa)_(soc|eco)$", names(tab$estimate)) & grepl("(secs|sepa)_(soc|eco)~~", names(tab$estimate)))
+  estimates <- tab$estimate[keep_these]
+  Sigma <- tab$Sigma[[1]][keep_these, keep_these]
+  names(estimates) <- paste0(gsub("~~", "_", names(estimates), fixed = TRUE), "_", country)
+  names(estimates) <- gsub("^(sepa|secs)_(.+?)_(.+?)_(.+)$", "\\3_\\1_\\2_\\4", names(estimates))
+  colnames(Sigma) <- rownames(Sigma) <- names(estimates)
+  list(est = estimates, sig = Sigma)
+})
+names(res) <- names(res_list)
+res_h17 <- res
+# Get individual BFs for each sample
+bf_individual <- sapply(1:length(res_list), function(i){
+  hyp <- paste2(unlist(
+    lapply(
+      lapply(hypotheses[1:7], removeothercountries, cnt = names(res_list)[i]),
+      removeparameters, est = res[[i]]$est)
+    ), collapse = "; ")
+  tmp <- BF(x = res[[i]]$est,
+            hypothesis = hyp,
+            Sigma = res[[i]]$sig,
+            n = sample_sizes[i])
+  tmp$BFtu_confirmatory[1:7]
+})
+out_cors <- apply(bf_individual, 1, prod)
+
+out_8 <- 
+  {
+    # fit model
+    res_list <- lapply(mods_8, function(x){estimate_lavaan(x)})
+    res_list8 <- res_list
+    res <- lapply(names(res_list), function(country){
+      thisfit = res_list[[country]]
+      tab <- bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~")
+      estimates <- tab$estimate
+      Sigma <- tab$Sigma[[1]]
+      names(estimates) <- paste0(gsub("~", "ON", names(estimates), fixed = TRUE), "_", country)
+      colnames(Sigma) <- rownames(Sigma) <- names(estimates)
+      list(est = estimates, sig = Sigma)
+    })
+    res8 <- res
+    bf_individual8 <- sapply(1:length(res_list), function(i){
+      hyp <- removeparameters(removeothercountries(hypotheses[8], cnt = names(res_list)[i]), est = res[[i]]$est)
+      tmp <- BF(x = res[[i]]$est,
+                hypothesis = hyp,
+                Sigma = res[[i]]$sig,
+                n = sample_sizes[i])
+      tmp$BFtu_confirmatory[1]
+    })
+    prod(bf_individual8)
+  }
+out_9 <- 
+  {
+    # fit model
+    res_list <- lapply(mods_9, function(x){estimate_lavaan(x)})
+    res_list9 <- res_list
+    res <- lapply(names(res_list), function(country){
+      thisfit = res_list[[country]]
+      tab <- bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~")
+      estimates <- tab$estimate
+      Sigma <- tab$Sigma[[1]]
+      names(estimates) <- paste0(gsub("~", "ON", names(estimates), fixed = TRUE), "_", country)
+      colnames(Sigma) <- rownames(Sigma) <- names(estimates)
+      list(est = estimates, sig = Sigma)
+    })
+    res9 <- res
+    bf_individual9 <- sapply(1:length(res_list), function(i){
+      hyp <- removeparameters(removeothercountries(hypotheses[9], cnt = names(res_list)[i]), est = res[[i]]$est)
+      tmp <- BF(x = res[[i]]$est,
+                hypothesis = hyp,
+                Sigma = res[[i]]$sig,
+                n = sample_sizes[i])
+      tmp$BFtu_confirmatory[1]
+    })
+    prod(bf_individual9)
+  }
+bayesfactors <- c(out_cors, 1/out_8, 1/out_9)
+est_for_hyp <- lapply(hypotheses, function(h){
+  pars = bain:::params_in_hyp(h)
+  tmp <- unlist(lapply(c(res_h17, res8, res9), function(i){
+    i$est[which(names(i$est) %in% pars)]
+  }))
+  nams <- names(tmp)
+  tmp <- data.frame(Value = tmp, Country = gsub("^.+(.{2})$", "\\1", nams), Parameter = gsub("^(.{2}\\.)?(.+?)_.{2}$", "\\2", nams))
+  tmp <- reshape(tmp, direction = "wide", idvar = "Country", timevar =  "Parameter")
+  rownames(tmp) <- NULL
+  names(tmp) <- gsub("Value\\.", "", names(tmp))
+  tmp
+})
+
+estimates <- lapply(names(res_list17), function(c){
+    x <- res_list17[[c]]
+    tmp <- standardizedSolution(x)
+    tmp <- tmp[tmp$op == "~~" & grepl("(soc|eco)", tmp$lhs) & !grepl("(soc|eco)", tmp$rhs), c("rhs", "lhs", "est.std", "se")]
+    names(tmp)[3] <- "ri"
+    tmp$social <- as.integer(grepl("_soc", tmp$lhs, fixed = TRUE))
+    tmp$eco <- as.integer(grepl("_eco", tmp$lhs, fixed = TRUE))
+    tmp$country <- c
+    tmp$ni <- unlist(x@Data@nobs)
+    tmp
+})
+estimates <- do.call(rbind, estimates)
+
+meta17 <- lapply(unique(estimates$rhs), function(x){
+  tmp <- estimates[estimates$rhs==x,]
+  tmp <- escalc(ri = tmp$ri, ni = tmp$ni, measure = "ZCOR", data = tmp)
+  # res <- rma(tmp$yi, vi = tmp$vi, mods = tmp[, c("social", "eco")], intercept = FALSE)
+  # if(length(unique(tmp$country))>2){
+  #   res <- robust(res, cluster = tmp$country)  
+  # }
+  tmp$id_study <- tmp$country
+  tmp$id_es <- 1:nrow(tmp)
+  res <- rma.mv(tmp$yi, tmp$vi, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp) 
+  confints <- confint(res)
+  tabres <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                       Estimate = c(fisherz2r(res$b), res$sigma2),
+                       ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                       ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                       p = c(res$pval, NA, NA),
+                       sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                       Model = "Overall")
+  # By conservatism dimension
+  res <- rma.mv(tmp$yi, tmp$vi, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp, intercept = FALSE, mods = tmp[, c("social", "eco")]) 
+  confints <- confint(res)
+  tabres2 <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                       Estimate = c(fisherz2r(res$b), res$sigma2),
+                       ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                       ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                       p = c(res$pval, NA, NA),
+                       sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                       Model = "Multigroup")
+  tabres <- rbind(tabres, tabres2)
+  tabres$CI <- conf_int(lb = tabres$ci.lb, ub = tabres$ci.ub)
+  tabres[c("ci.lb", "ci.ub")] <- NULL
+  tabres$Domain <- x
+  tabres
+})
+meta17 <- do.call(rbind, meta17)
+
+
+
+# Hypothesis 8 ------------------------------------------------------------
+source("mod89.R")
+res8 <- lapply(names(mod8), function(n){
+  sem(mod8[[n]], dat[[n]], auto.fix.first = FALSE, auto.var = TRUE, auto.cov.lv.x = TRUE, std.lv = TRUE, auto.cov.y = TRUE)
+})
+names(res8) <- names(mod8)
+
+estimates <- lapply(names(res8), function(c){
+  x <- res8[[c]]
+  tmp <- parameterestimates(x)
+  tmp <- tmp[!tmp$label == "", c("rhs", "lhs", "est", "se")]
+  names(tmp)[3] <- "bi"
+  tmp$social <- as.integer(grepl("_soc", tmp$lhs, fixed = TRUE))
+  tmp$eco <- as.integer(grepl("_eco", tmp$lhs, fixed = TRUE))
+  tmp$country <- c
+  tmp$ni <- unlist(x@Data@nobs)
+  tmp
+})
+estimates <- do.call(rbind, estimates)
+
+meta8 <- lapply(c("fam", "grp"), function(x){
+  tmp <- estimates[estimates$rhs==x,]
+  tmp$id_study <- tmp$country
+  tmp$id_es <- 1:nrow(tmp)
+  if(nrow(tmp) == 1) return(NULL)
+  res <- tryCatch({rma.mv(tmp$bi, tmp$se^2, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp) }, error = function(e){rma(tmp$bi, tmp$se^2, data=tmp)})
+  confints <- confint(res)
+  tabres <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                       Estimate = c(fisherz2r(res$b), res$sigma2),
+                       ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                       ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                       p = c(res$pval, NA, NA),
+                       sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                       Model = "Overall")
+  # By conservatism dimension
+  res <- try(rma.mv(tmp$bi, tmp$se^2, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp, intercept = FALSE, mods = tmp[, c("social", "eco")]))
+  if(inherits(res, "try-error")) return(tabres)
+  confints <- confint(res)
+  tabres2 <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                        Estimate = c(fisherz2r(res$b), res$sigma2),
+                        ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                        ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                        p = c(res$pval, NA, NA),
+                        sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                        Model = "Multigroup")
+  if(tabres$Estimate[1] == tabres2$Estimate[1]) return(tabres)
+  tabres <- rbind(tabres, tabres2)
+  tabres$CI <- conf_int(lb = tabres$ci.lb, ub = tabres$ci.ub)
+  tabres[c("ci.lb", "ci.ub")] <- NULL
+  tabres$Domain <- x
+  tabres
+})
+meta8 <- do.call(rbind, meta8)
+
+# Hypothesis 9 ------------------------------------------------------------
+
+res9 <- lapply(names(mod8), function(n){
+  mod <- mod8[[n]]
+  mod <- gsub("secs_soc_fam", "secs_soc_rec", mod, fixed = T)
+  mod <- gsub("secs_soc_grp", "secs_soc_fai", mod, fixed = T)
+  mod <- gsub("* fam", "* rec", mod, fixed = T)
+  mod <- gsub("* grp", "* fai", mod, fixed = T)
+  sem(mod, dat[[n]], auto.fix.first = FALSE, auto.var = TRUE, auto.cov.lv.x = TRUE, std.lv = TRUE, auto.cov.y = TRUE)
+})
+names(res9) <- names(mod8)
+
+estimates <- lapply(names(res9), function(c){
+  x <- res9[[c]]
+  tmp <- parameterestimates(x)
+  tmp <- tmp[!tmp$label == "", c("rhs", "lhs", "est", "se")]
+  names(tmp)[3] <- "bi"
+  tmp$social <- as.integer(grepl("_soc", tmp$lhs, fixed = TRUE))
+  tmp$eco <- as.integer(grepl("_eco", tmp$lhs, fixed = TRUE))
+  tmp$country <- c
+  tmp$ni <- unlist(x@Data@nobs)
+  tmp
+})
+estimates <- do.call(rbind, estimates)
+
+meta9 <- lapply(c("rec", "fai"), function(x){
+  tmp <- estimates[estimates$rhs==x,]
+  tmp$id_study <- tmp$country
+  tmp$id_es <- 1:nrow(tmp)
+  if(nrow(tmp) == 1) return(NULL)
+  res <- tryCatch({rma.mv(tmp$bi, tmp$se^2, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp) }, error = function(e){rma(tmp$bi, tmp$se^2, data=tmp)})
+  confints <- confint(res)
+  tabres <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                       Estimate = c(fisherz2r(res$b), res$sigma2),
+                       ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                       ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                       p = c(res$pval, NA, NA),
+                       sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                       Model = "Overall")
+  # By conservatism dimension
+  res <- try(rma.mv(tmp$bi, tmp$se^2, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp, intercept = FALSE, mods = tmp[, c("social", "eco")]))
+  if(inherits(res, "try-error")) return(tabres)
+  confints <- confint(res)
+  tabres2 <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                        Estimate = c(fisherz2r(res$b), res$sigma2),
+                        ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                        ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                        p = c(res$pval, NA, NA),
+                        sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                        Model = "Multigroup")
+  if(tabres$Estimate[1] == tabres2$Estimate[1]) return(tabres)
+  tabres <- rbind(tabres, tabres2)
+  tabres$CI <- conf_int(lb = tabres$ci.lb, ub = tabres$ci.ub)
+  tabres[c("ci.lb", "ci.ub")] <- NULL
+  tabres$Domain <- x
+  tabres
+})
+meta9 <- do.call(rbind, meta9)
+
+saveRDS(bayesfactors, "bayesfactors.RData")
+saveRDS(est_for_hyp, "est_for_hyp.RData")
+saveRDS(res_list17, "res_list17.RData")
+saveRDS(meta17, "meta17.RData")
+saveRDS(meta8, "meta8.RData")
+saveRDS(meta9, "meta9.RData")
 
 ```
 
+First, we provide an overview of the latent variable correlations for each country.
+These are the model parameters evaluated using the informative hypothesis tests below:
+
+```{r templatecortabs, include=FALSE}
+res_list17 <- readRDS("res_list17.RData")
+out = NULL
+for (i in 1:length(res_list17)) {
+  out = c(out, knit_expand('template_tabcor.rmd'))
+}
+```
+
+`r paste(knit(text = out), collapse = '\n')`
+
+Next, we examine evidence for the preregistered hypotheses:
+
 ```{r tabresults, results = "asis"}
+bayesfactors <- readRDS("bayesfactors.RData")
+est_for_hyp <- readRDS("est_for_hyp.RData")
 interpret_bf <- function(bf){
   sapply(bf, function(bf){
     if(bf < 1/10) return("rejected")
@@ -220,8 +558,240 @@ kbl(fit_17, caption = paste0("Fit of models used to test hypotheses 1-7."), digi
 The preceding analyses were conceptually replicated in a fourth sample.
 Note that this sample used moral relevance scales instead of moral judgment scales.
 
-```{r, include = FALSE, code=xfun::read_utf8('../analysis_tris.R')}
+```{r, eval = run_everything}
+library(worcs)
+library(lavaan)
+library(BFpack)
+library(ggplot2)
+library(tidySEM)
+tris <- load_data(to_envir = FALSE)[["tris"]]
 
+
+# Descriptives ------------------------------------------------------------
+scales_tris <-
+  lapply(unique(gsub("_\\d+$", "", names(tris))), function(i)
+    grep(i, names(tris), value = T))
+names(scales_tris) <- unique(gsub("_\\d+$", "", names(tris)))
+
+cfa_tris <- t(sapply(names(scales_tris), function(scal) {
+  scal <- paste0(scal, "_", 1:length(scales_tris[[scal]]))
+  out <-
+    cfa(paste0("F =~ ", paste0(scal, collapse = "+")), std.lv = TRUE, data = tris)
+  paran <- fa.parallel(tris[, scal])
+  tab <- table_results(out, columns = NULL, digits = 3)
+  tab <- tab[-nrow(tab),]
+  loadns <- as.numeric(tab$est_std)[tab$op == "=~"]
+  r2s <- lavInspect(out, "r2")
+  omga <- semTools::reliability(out, what = "omega")[1, 1]
+  c(
+    Subscale = gsub("_\\d$", "", scal[1]),
+    Items = length(scal),
+    n = out@Data@nobs[[1]],
+    formatC(unlist(table_fit(out)[1, c("chisq", "cfi", "tli", "rmsea", "srmr")]), digits = 3, format = "f"),
+    formatC(
+      c(
+        min_load = min(loadns),
+        max_load = max(loadns),
+        min_r2 = min(r2s),
+        max_r2 = max(r2s),
+        omega = omga
+      ),
+      digits = 3,
+      format = "f"
+    ),
+    Reliability = tidySEM:::interpret(omga),
+    Factors = paran$nfact
+  )
+}))
+
+sample_sizes <- nrow(tris)
+hypotheses <-
+  list(
+    "(fam_secs_soc_us, fam_secs_eco_us, fam_sepa_soc_dk, fam_sepa_eco_dk, fam_secs_soc_nl, fam_secs_eco_nl, fam_sepa_soc_nl, fam_sepa_eco_nl) > .1",
+    "(grp_secs_soc_us, grp_secs_eco_us, grp_sepa_soc_dk, grp_sepa_eco_dk, grp_secs_soc_nl, grp_secs_eco_nl, grp_sepa_soc_nl, grp_sepa_eco_nl) > .1",
+    "(rec_secs_soc_us, rec_secs_eco_us, rec_sepa_soc_dk, rec_sepa_eco_dk, rec_secs_soc_nl, rec_secs_eco_nl, rec_sepa_soc_nl, rec_sepa_eco_nl) > .1",
+    "(her_secs_soc_us, her_secs_eco_us, her_sepa_soc_dk, her_sepa_eco_dk, her_secs_soc_nl, her_secs_eco_nl, her_sepa_soc_nl, her_sepa_eco_nl) > .1",
+    "(def_secs_soc_us, def_secs_eco_us, def_sepa_soc_dk, def_sepa_eco_dk, def_secs_soc_nl, def_secs_eco_nl, def_sepa_soc_nl, def_sepa_eco_nl) > .1",
+    "(fai_secs_soc_us, fai_secs_eco_us, fai_sepa_soc_dk, fai_sepa_eco_dk, fai_secs_soc_nl, fai_secs_eco_nl, fai_sepa_soc_nl, fai_sepa_eco_nl) < -.1",
+    "(pro_secs_soc_us, pro_secs_eco_us, pro_sepa_soc_dk, pro_sepa_eco_dk, pro_secs_soc_nl, pro_secs_eco_nl, pro_sepa_soc_nl, pro_sepa_eco_nl) > .1"
+  )
+hypotheses[[8]] <-
+  gsub("[<>]",
+       "=",
+       gsub(
+         "\\b(fam|grp)_((sepa|secs)_(soc|eco))_",
+         "\\2ON\\1_",
+         gsub("\\) > 0 & \\(", ", ", paste0(
+           gsub("-?\\.1", "0", hypotheses[[1]]),
+           " & ",
+           gsub(".1", "0", hypotheses[[2]], fixed = TRUE)
+         ))
+       ))
+hypotheses[[9]] <-
+  gsub("fam",
+       "rec",
+       gsub("grp", "fai", hypotheses[[8]], fixed = TRUE),
+       fixed = TRUE)
+
+
+mod <- tidy_sem(tris)
+mod_cor <- measurement(mod)
+
+mod_8 <-
+  add_paths(mod_cor, paste0((t(
+    outer(paste0(unique(
+      grep("^se", mod_cor$dictionary$scale, value = TRUE)
+    ), " ~ "),
+    unique(
+      grep("^(fam|grp)", mod_cor$dictionary$scale, value = TRUE)
+    ), paste0)
+  )), collapse = "\n"))
+
+mod_9 <-
+  add_paths(mod_cor,   paste0((t(
+    outer(paste0(unique(
+      grep("^se", mod_cor$dictionary$scale, value = TRUE)
+    ), " ~ "),
+    unique(
+      grep("^(rec|fai)", mod_cor$dictionary$scale, value = TRUE)
+    ), paste0)
+  )), collapse = "\n"))
+
+removeothercountries <- function(hyp, cnt) {
+  gsub(",\\s+\\)", "\\)", gsub(paste0("\\b[a-zA-Z_]+(?<!", cnt, ")\\b,?"), "", hyp, perl = TRUE))
+}
+
+removeparameters <- function(hyp, est) {
+  params_in_hyp <- bain:::params_in_hyp(hyp)
+  est <- names(est)
+  if (any(!params_in_hyp %in% est)) {
+    for (param in params_in_hyp[!params_in_hyp %in% est]) {
+      hyp <- gsub(paste0("\\b", param, "\\b,?"), "", hyp)
+    }
+    hyp <- gsub(",\\s+\\)", "\\)", hyp)
+    hyp <- gsub("\\(\\s+", "\\(", hyp)
+  }
+  hyp <- gsub("\\(([a-zA-Z_]+)\\)", "\\1", hyp)
+  if (length(bain:::params_in_hyp(hyp)) == 0)
+    return(NA)
+  hyp
+}
+
+res17 <- estimate_lavaan(mod_cor)
+res_tris <- res17
+tab <-
+  bain:::lav_get_estimates(res17, standardize = TRUE, retain_which = "~~")
+keep_these <-
+  which(
+    !grepl("~~(secs|sepa)_(soc|eco)$", names(tab$estimate)) &
+      grepl("(secs|sepa)_(soc|eco)~~", names(tab$estimate))
+  )
+estimates <- tab$estimate[keep_these]
+Sigma <- tab$Sigma[[1]][keep_these, keep_these]
+names(estimates) <-
+  gsub("~~", "_", names(estimates), fixed = TRUE)
+names(estimates) <-
+  gsub("^(sepa|secs)_(.+?)_(.+?)$", "\\3_\\1_\\2", names(estimates))
+colnames(Sigma) <- rownames(Sigma) <- names(estimates)
+res <- list(est = estimates, sig = Sigma)
+res17 <- res
+# Get BF
+hyp <- paste2(unlist(lapply(
+  gsub("_us", "", lapply(hypotheses[1:7], removeothercountries, cnt = "us")),
+  removeparameters, est = res$est
+)), collapse = "; ")
+tmp <- BF(
+  x = res$est,
+  hypothesis = hyp,
+  Sigma = res$sig,
+  n = sample_sizes
+)
+
+out_cors <- tmp$BFtu_confirmatory[1:7]
+
+out_8 <-
+  {
+    # fit model
+    res <- estimate_lavaan(mod_8)
+    res <- {
+      thisfit = res
+      tab <-
+        bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~")
+      estimates <- tab$estimate
+      Sigma <- tab$Sigma[[1]]
+      names(estimates) <-
+        gsub("~", "ON", names(estimates), fixed = TRUE)
+      colnames(Sigma) <- rownames(Sigma) <- names(estimates)
+      list(est = estimates, sig = Sigma)
+    }
+    res_tris8 <- res
+    
+    hyp <- paste2(removeparameters(gsub(
+      "_us",
+      "",
+      lapply(hypotheses[8], removeothercountries, cnt = "us")
+    ),
+    est = res$est))
+    tmp <- BF(
+      x = res$est,
+      hypothesis = hyp,
+      Sigma = res$sig,
+      n = sample_sizes
+    )
+    tmp$BFtu_confirmatory[1]
+    
+  }
+out_9 <-
+  {
+    # fit model
+    res <- estimate_lavaan(mod_9)
+    res <- {
+      thisfit = res
+      tab <-
+        bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~")
+      estimates <- tab$estimate
+      Sigma <- tab$Sigma[[1]]
+      names(estimates) <-
+        gsub("~", "ON", names(estimates), fixed = TRUE)
+      colnames(Sigma) <- rownames(Sigma) <- names(estimates)
+      list(est = estimates, sig = Sigma)
+    }
+    res_tris9 <- res
+    
+    hyp <- paste2(removeparameters(gsub(
+      "_us",
+      "",
+      lapply(hypotheses[9], removeothercountries, cnt = "us")
+    ),
+    est = res$est))
+    tmp <- BF(
+      x = res$est,
+      hypothesis = hyp,
+      Sigma = res$sig,
+      n = sample_sizes
+    )
+    tmp$BFtu_confirmatory[1]
+    
+  }
+
+bayesfactors_tris <- c(out_cors, 1 / out_8, 1 / out_9)
+est_for_hyp_tris <- lapply(hypotheses, function(h) {
+  pars = gsub("_us", "", bain:::params_in_hyp(h))
+  tmp <- unlist(lapply(list(res17, res_tris8, res_tris9), function(i) {
+    tryCatch(i$est[which(names(i$est) %in% pars)], error = function(e){ NA })
+  }))
+  tmp
+})
+
+saveRDS(bayesfactors_tris, "bayesfactors_tris.RData")
+saveRDS(est_for_hyp_tris, "est_for_hyp_tris.RData")
+saveRDS(res_tris, "res_tris.RData")
+```
+
+```{r}
+bayesfactors_tris <- readRDS("bayesfactors_tris.RData")
+est_for_hyp_tris <- readRDS("est_for_hyp_tris.RData")
+res_tris <- readRDS("res_tris.RData")
 ```
 
 This replication offered no support for any hypothesis except H`r which(bayesfactors_tris > 3)`:
@@ -239,3 +809,36 @@ for(i in 1:length(bayesfactors_tris)){
 ```
 
 The fit of this model was also poor, though somewhat better than for the confirmatory analyses; `r paste0(names(trisfit), " = ", formatC(trisfit, digits = 3, format = "f"), collapse = ", ")`.
+
+
+# Meta-analyses
+
+Whereas the preregistered hypotheses test the hypothesis that *all* correlations between *all* moral domains and *all* conservatism scales will be > .1 in *all* countries,
+we can also examine the *average* correlation between moral domains and conservatism scales across countries.
+
+For this purpose, we conducted three-level meta-analyses.
+We estimated two separate models for each moral domain:
+One with an average correlation (intercept) across all conservatism scales (Model: Overall),
+and one multi-group analysis with separate intercepts for social and economic conservatism scales (Model: Multigroup).
+To account for the dependent data, we used a three-level meta-analysis.
+Note that each model provides an estimate of variance between effect sizes within each country (tau$^2$w) and variance between the countries (tau$^2$b).
+
+```{r, results = "asis"}
+meta17 <- readRDS("meta17.RData")
+kbl(meta17, caption = "Average correlations according to three-level meta-analysis", digits = 3) |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+For Hypotheses 8 and 9, it is instructive to examine the average partial regression coefficients for the two moral domains mentioned in the hypotheses:
+
+```{r meta8, results = "asis"}
+meta8 <- readRDS("meta8.RData")
+kbl(meta8, caption = "Average partial regression coefficients according to three-level meta-analysis", digits = 3) |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+```{r meta9, results = "asis"}
+meta9 <- readRDS("meta9.RData")
+kbl(meta9, caption = "Average partial regression coefficients according to three-level meta-analysis", digits = 3) |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```

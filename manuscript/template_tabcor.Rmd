@@ -1,0 +1,5 @@
+```{r tabcors{{i}}, results = 'asis'}
+p <- table_cors(res_list17[[{{i}}]])
+kbl(p, caption = paste0("Latent variable correlations for ", names(res_list17)[{{i}}]), digits = 3) |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```

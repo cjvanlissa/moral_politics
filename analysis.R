@@ -3,7 +3,9 @@ library(lavaan)
 library(BFpack)
 library(ggplot2)
 library(tidySEM)
+library(metafor)
 set.seed(22)
+dat <- load_data(to_envir = FALSE)[1:3]
 sample_sizes <- sapply(dat, nrow)
 hypotheses <- list("(fam_secs_soc_us, fam_secs_eco_us, fam_sepa_soc_dk, fam_sepa_eco_dk, fam_secs_soc_nl, fam_secs_eco_nl, fam_sepa_soc_nl, fam_sepa_eco_nl) > .1",
                    "(grp_secs_soc_us, grp_secs_eco_us, grp_sepa_soc_dk, grp_sepa_eco_dk, grp_secs_soc_nl, grp_secs_eco_nl, grp_sepa_soc_nl, grp_sepa_eco_nl) > .1",
@@ -145,3 +147,173 @@ est_for_hyp <- lapply(hypotheses, function(h){
   tmp
 })
 
+estimates <- lapply(names(res_list17), function(c){
+    x <- res_list17[[c]]
+    tmp <- standardizedSolution(x)
+    tmp <- tmp[tmp$op == "~~" & grepl("(soc|eco)", tmp$lhs) & !grepl("(soc|eco)", tmp$rhs), c("rhs", "lhs", "est.std", "se")]
+    names(tmp)[3] <- "ri"
+    tmp$social <- as.integer(grepl("_soc", tmp$lhs, fixed = TRUE))
+    tmp$eco <- as.integer(grepl("_eco", tmp$lhs, fixed = TRUE))
+    tmp$country <- c
+    tmp$ni <- unlist(x@Data@nobs)
+    tmp
+})
+estimates <- do.call(rbind, estimates)
+
+meta17 <- lapply(unique(estimates$rhs), function(x){
+  tmp <- estimates[estimates$rhs==x,]
+  tmp <- escalc(ri = tmp$ri, ni = tmp$ni, measure = "ZCOR", data = tmp)
+  # res <- rma(tmp$yi, vi = tmp$vi, mods = tmp[, c("social", "eco")], intercept = FALSE)
+  # if(length(unique(tmp$country))>2){
+  #   res <- robust(res, cluster = tmp$country)  
+  # }
+  tmp$id_study <- tmp$country
+  tmp$id_es <- 1:nrow(tmp)
+  res <- rma.mv(tmp$yi, tmp$vi, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp) 
+  confints <- confint(res)
+  tabres <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                       Estimate = c(fisherz2r(res$b), res$sigma2),
+                       ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                       ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                       p = c(res$pval, NA, NA),
+                       sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                       Model = "Overall")
+  # By conservatism dimension
+  res <- rma.mv(tmp$yi, tmp$vi, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp, intercept = FALSE, mods = tmp[, c("social", "eco")]) 
+  confints <- confint(res)
+  tabres2 <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                       Estimate = c(fisherz2r(res$b), res$sigma2),
+                       ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                       ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                       p = c(res$pval, NA, NA),
+                       sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                       Model = "Multigroup")
+  tabres <- rbind(tabres, tabres2)
+  tabres$CI <- conf_int(lb = tabres$ci.lb, ub = tabres$ci.ub)
+  tabres[c("ci.lb", "ci.ub")] <- NULL
+  tabres$Domain <- x
+  tabres
+})
+meta17 <- do.call(rbind, meta17)
+
+
+
+# Hypothesis 8 ------------------------------------------------------------
+source("../mod89.R")
+res8 <- lapply(names(mod8), function(n){
+  sem(mod8[[n]], dat[[n]], auto.fix.first = FALSE, auto.var = TRUE, auto.cov.lv.x = TRUE, std.lv = TRUE, auto.cov.y = TRUE)
+})
+names(res8) <- names(mod8)
+
+estimates <- lapply(names(res8), function(c){
+  x <- res8[[c]]
+  tmp <- parameterestimates(x)
+  tmp <- tmp[!tmp$label == "", c("rhs", "lhs", "est", "se")]
+  names(tmp)[3] <- "bi"
+  tmp$social <- as.integer(grepl("_soc", tmp$lhs, fixed = TRUE))
+  tmp$eco <- as.integer(grepl("_eco", tmp$lhs, fixed = TRUE))
+  tmp$country <- c
+  tmp$ni <- unlist(x@Data@nobs)
+  tmp
+})
+estimates <- do.call(rbind, estimates)
+
+meta8 <- lapply(c("fam", "grp"), function(x){
+  tmp <- estimates[estimates$rhs==x,]
+  tmp$id_study <- tmp$country
+  tmp$id_es <- 1:nrow(tmp)
+  if(nrow(tmp) == 1) return(NULL)
+  res <- tryCatch({rma.mv(tmp$bi, tmp$se^2, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp) }, error = function(e){rma(tmp$bi, tmp$se^2, data=tmp)})
+  confints <- confint(res)
+  tabres <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                       Estimate = c(fisherz2r(res$b), res$sigma2),
+                       ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                       ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                       p = c(res$pval, NA, NA),
+                       sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                       Model = "Overall")
+  # By conservatism dimension
+  res <- try(rma.mv(tmp$bi, tmp$se^2, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp, intercept = FALSE, mods = tmp[, c("social", "eco")]))
+  if(inherits(res, "try-error")) return(tabres)
+  confints <- confint(res)
+  tabres2 <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                        Estimate = c(fisherz2r(res$b), res$sigma2),
+                        ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                        ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                        p = c(res$pval, NA, NA),
+                        sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                        Model = "Multigroup")
+  if(tabres$Estimate[1] == tabres2$Estimate[1]) return(tabres)
+  tabres <- rbind(tabres, tabres2)
+  tabres$CI <- conf_int(lb = tabres$ci.lb, ub = tabres$ci.ub)
+  tabres[c("ci.lb", "ci.ub")] <- NULL
+  tabres$Domain <- x
+  tabres
+})
+meta8 <- do.call(rbind, meta8)
+
+# Hypothesis 9 ------------------------------------------------------------
+
+res9 <- lapply(names(mod8), function(n){
+  mod <- mod8[[n]]
+  mod <- gsub("secs_soc_fam", "secs_soc_rec", mod, fixed = T)
+  mod <- gsub("secs_soc_grp", "secs_soc_fai", mod, fixed = T)
+  mod <- gsub("* fam", "* rec", mod, fixed = T)
+  mod <- gsub("* grp", "* fai", mod, fixed = T)
+  sem(mod, dat[[n]], auto.fix.first = FALSE, auto.var = TRUE, auto.cov.lv.x = TRUE, std.lv = TRUE, auto.cov.y = TRUE)
+})
+names(res9) <- names(mod8)
+
+estimates <- lapply(names(res9), function(c){
+  x <- res9[[c]]
+  tmp <- parameterestimates(x)
+  tmp <- tmp[!tmp$label == "", c("rhs", "lhs", "est", "se")]
+  names(tmp)[3] <- "bi"
+  tmp$social <- as.integer(grepl("_soc", tmp$lhs, fixed = TRUE))
+  tmp$eco <- as.integer(grepl("_eco", tmp$lhs, fixed = TRUE))
+  tmp$country <- c
+  tmp$ni <- unlist(x@Data@nobs)
+  tmp
+})
+estimates <- do.call(rbind, estimates)
+
+meta9 <- lapply(c("rec", "fai"), function(x){
+  tmp <- estimates[estimates$rhs==x,]
+  tmp$id_study <- tmp$country
+  tmp$id_es <- 1:nrow(tmp)
+  if(nrow(tmp) == 1) return(NULL)
+  res <- tryCatch({rma.mv(tmp$bi, tmp$se^2, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp) }, error = function(e){rma(tmp$bi, tmp$se^2, data=tmp)})
+  confints <- confint(res)
+  tabres <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                       Estimate = c(fisherz2r(res$b), res$sigma2),
+                       ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                       ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                       p = c(res$pval, NA, NA),
+                       sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                       Model = "Overall")
+  # By conservatism dimension
+  res <- try(rma.mv(tmp$bi, tmp$se^2, random = list(~ 1 | id_study, ~ 1 | id_es), data=tmp, intercept = FALSE, mods = tmp[, c("social", "eco")]))
+  if(inherits(res, "try-error")) return(tabres)
+  confints <- confint(res)
+  tabres2 <- data.frame(Parameter = c(rownames(res$b), "Tau2b", "Tau2w"),
+                        Estimate = c(fisherz2r(res$b), res$sigma2),
+                        ci.lb = c(fisherz2r(res$ci.lb), confints[[1]]$random[1,2], confints[[2]]$random[1,2]),
+                        ci.ub = c(fisherz2r(res$ci.ub), confints[[1]]$random[1,3], confints[[2]]$random[1,3]),
+                        p = c(res$pval, NA, NA),
+                        sig = c(c("", "*")[(res$pval < .05)+1], c("", "*")[(c(confints[[1]]$random[1,2], confints[[2]]$random[1,2])> 1e-4)+1]),
+                        Model = "Multigroup")
+  if(tabres$Estimate[1] == tabres2$Estimate[1]) return(tabres)
+  tabres <- rbind(tabres, tabres2)
+  tabres$CI <- conf_int(lb = tabres$ci.lb, ub = tabres$ci.ub)
+  tabres[c("ci.lb", "ci.ub")] <- NULL
+  tabres$Domain <- x
+  tabres
+})
+meta9 <- do.call(rbind, meta9)
+
+saveRDS(bayesfactors, "bayesfactors.RData")
+saveRDS(est_for_hyp, "est_for_hyp.RData")
+saveRDS(res_list17, "res_list17.RData")
+saveRDS(meta17, "meta17.RData")
+saveRDS(meta8, "meta8.RData")
+saveRDS(meta9, "meta9.RData")
