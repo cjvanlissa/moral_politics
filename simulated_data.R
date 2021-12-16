@@ -26,9 +26,6 @@ hypotheses <- list("(fam_secs_soc_us, fam_secs_eco_us, fam_sepa_soc_dk, fam_sepa
                    "(fai_secs_soc_us, fai_secs_eco_us, fai_sepa_soc_dk, fai_sepa_eco_dk, fai_secs_soc_nl, fai_secs_eco_nl, fai_sepa_soc_nl, fai_sepa_eco_nl) < -.1",
                    "(pro_secs_soc_us, pro_secs_eco_us, pro_sepa_soc_dk, pro_sepa_eco_dk, pro_secs_soc_nl, pro_secs_eco_nl, pro_sepa_soc_nl, pro_sepa_eco_nl) > .1"
                    )
-hypotheses[[8]] <- gsub("[<>]", "=", gsub("\\b(fam|grp)_((sepa|secs)_(soc|eco))_", "\\2ON\\1_", gsub("\\) > 0 & \\(", ", ", paste0(gsub("-?\\.1", "0", hypotheses[[1]]), " & ", gsub(".1", "0", hypotheses[[2]], fixed = TRUE)))))
-hypotheses[[9]] <- gsub("fam", "rec", gsub("grp", "fai", hypotheses[[8]], fixed = TRUE), fixed = TRUE)
-
 
 pop_mod_mac <- ' 
 # Mac loadings
@@ -174,19 +171,11 @@ pro ~~ .1 * sepa_eco
 pop_mods <- lapply(list(us = pop_mod_us,
                         dk = pop_mod_dk,
                         nl = pop_mod_nl), function(x){
-                          gsub(".1 ", true_es, x, fixed = TRUE)
+                          gsub(".1 ", true_es, x, fixed = TRUE) #replace effect size .1 with true_es
                         })
 
 mods_cor <- lapply(pop_mods, gsub, pattern = "[0-9\\. -]{2,}\\s?\\*", replacement = "")
-mods_8 <- lapply(mods_cor, function(x){
-  x <- strsplit(x, split = "\\n")[[1]]
-  x <- x[!grepl("(rec|her|def|fai|pro)", x)]
-  x <- x[!grepl("#", x, fixed = TRUE)]
-  gsub("^(fam|grp) ~~ (secs|sepa)_(soc|eco)$", "\\2_\\3 ~ \\1", x)
-})
-mods_9 <- lapply(mods_8, function(x){
-  gsub("fam", "rec", gsub("grp", "fai", x, fixed = TRUE), fixed = TRUE)
-})
+
 
 removeothercountries <- function(hyp, cnt){
   gsub(",\\s+\\)", "\\)", gsub(paste0("\\b[a-zA-Z_]+(?<!", cnt, ")\\b,?"), "", hyp, perl = TRUE))
@@ -198,96 +187,49 @@ sim_results <- replicate(100, {
   dfs <- lapply(names(sample_sizes), function(n){simulateData(model = pop_mods[[n]], sample.nobs=sample_sizes[[n]])})
   names(dfs) <- names(sample_sizes)
   out_cors <- 
-  tryCatch({
+  tryCatch({ #ends in line 218
     # fit model
     res_list <- lapply(names(mods_cor), function(nam){sem(model = mods_cor[[nam]], data = dfs[[nam]])})
     names(res_list) <- names(mods_cor)
     
     res <- lapply(names(res_list), function(country){
-      thisfit = res_list[[country]]
-      tab <- bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~~")
-      keep_these <- which(grepl("~~(secs|sepa)_(soc|eco)$", names(tab$estimate)) & !grepl("(secs|sepa)_(soc|eco)~~", names(tab$estimate)))
-      estimates <- tab$estimate[keep_these]
-      Sigma <- tab$Sigma[[1]][keep_these, keep_these]
+      thisfit = res_list[[country]] #obtain lavaan model for a country
+      tab <- bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~~") #obtain lavaan estimates with sign ~~
+      keep_these <- which(grepl("~~(secs|sepa)_(soc|eco)$", names(tab$estimate)) & !grepl("(secs|sepa)_(soc|eco)~~", names(tab$estimate))) #keep all estimates that involve outcome variables
+      estimates <- tab$estimate[keep_these] #estimates of outcome variables
+      Sigma <- tab$Sigma[[1]][keep_these, keep_these] #cov matrix of estimates containing outcome variables
       names(estimates) <- paste0(gsub("~~", "_", names(estimates), fixed = TRUE), "_", country)
       colnames(Sigma) <- rownames(Sigma) <- names(estimates)
-      list(est = estimates, sig = Sigma)
+      list(est = estimates, sig = Sigma) #obtain list with all estimates and cov matrices
     })
 
     # Get individual BFs for each sample
     bf_individual <- sapply(1:length(res_list), function(i){
-      hyp <- paste0(unlist(lapply(hypotheses[1:7], removeothercountries, cnt = names(res_list)[i])), collapse = "; ")
+      hyp <- paste0(unlist(lapply(hypotheses[1:7], removeothercountries, cnt = names(res_list)[i])), collapse = "; ") #extract hypotheses of 1 country
       tmp <- BF(x = res[[i]]$est,
          hypothesis = hyp,
          Sigma = res[[i]]$sig,
          n = sample_sizes[i])
-      tmp$BFtu_confirmatory[1:7]
-    })
-    apply(bf_individual, 1, prod)
+      tmp$BFtu_confirmatory[1:7] #obtain BF of constrained against unconstrained hypothesis (how much more likely is c than u)
+    }) #sample size is relevant, as it determines PBF
+    #colnames(bf_individual) <- names(sample_sizes)
+    # bf_individual2 <- t(t(bf_individual) ^ (1/sample_sizes))
+    apply(bf_individual, 1, prod) #this needs to be prod(x)^(1/N_cnt)
+    ###here ER and SR can be featured too.
   }, error = function(e){
     return(rep(NA, 7))
   })
-  out_8 <- 
-    tryCatch({
-      # fit model
-      res_list <- lapply(names(mods_cor), function(nam){sem(model = mods_8[[nam]], data = dfs[[nam]])})
-      names(res_list) <- names(mods_cor)
-      
-      res <- lapply(names(res_list), function(country){
-        thisfit = res_list[[country]]
-        tab <- bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~")
-        estimates <- tab$estimate
-        Sigma <- tab$Sigma[[1]]
-        names(estimates) <- paste0(gsub("~", "ON", names(estimates), fixed = TRUE), "_", country)
-        colnames(Sigma) <- rownames(Sigma) <- names(estimates)
-        list(est = estimates, sig = Sigma)
-      })
-      bf_individual <- sapply(1:length(res_list), function(i){
-        hyp <- removeothercountries(hypotheses[8], cnt = names(res_list)[i])
-        tmp <- BF(x = res[[i]]$est,
-                  hypothesis = hyp,
-                  Sigma = res[[i]]$sig,
-                  n = sample_sizes[i])
-        tmp$BFtu_confirmatory[1]
-      })
-      prod(bf_individual)
-      }, error = function(e){
-      return(NA)
-    })
-  out_9 <- 
-    tryCatch({
-      # fit model
-      res_list <- lapply(names(mods_cor), function(nam){sem(model = mods_9[[nam]], data = dfs[[nam]])})
-      names(res_list) <- names(mods_cor)
-      
-      res <- lapply(names(res_list), function(country){
-        thisfit = res_list[[country]]
-        tab <- bain:::lav_get_estimates(thisfit, standardize = TRUE, retain_which = "~")
-        estimates <- tab$estimate
-        Sigma <- tab$Sigma[[1]]
-        names(estimates) <- paste0(gsub("~", "ON", names(estimates), fixed = TRUE), "_", country)
-        colnames(Sigma) <- rownames(Sigma) <- names(estimates)
-        list(est = estimates, sig = Sigma)
-      })
-      bf_individual <- sapply(1:length(res_list), function(i){
-        hyp <- removeothercountries(hypotheses[9], cnt = names(res_list)[i])
-        tmp <- BF(x = res[[i]]$est,
-                  hypothesis = hyp,
-                  Sigma = res[[i]]$sig,
-                  n = sample_sizes[i])
-        tmp$BFtu_confirmatory[1]
-      })
-      prod(bf_individual)
-    }, error = function(e){
-      return(NA)
-    })
-  c(out_cors, out_8, out_9)
+
+
+  c(out_cors)
 })
 })
 
 #saveRDS(sim_results, "sim_results_5.RData")
 #saveRDS(sim_conditions, "sim_conditions2.RData")
-#sim_results <- readRDS("sim_results_3.RData")
+#sim_results <- readRDS("./Sim Results/sim_results_3.RData") #result of obtaining BF for all 7 hyps, 100 times.
+#sim_conditions <- readRDS("sim_conditions.RData")
+
 df_plot <- do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
   sim_results <- sim_conditions[[thiscond]]
   df_plot <- do.call(rbind, lapply(1:nrow(sim_results), function(i){
