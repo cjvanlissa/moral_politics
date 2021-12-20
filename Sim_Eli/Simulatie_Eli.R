@@ -16,13 +16,18 @@ var_n <- 3
 n <- 100
 hyp_val <- 0.1
 es <- 0.1
-k <- 10
+k <- 5
 
 
 #simulate data for every group
 dfs <- lapply(1:k, function(i){
-  simdata(es, var_n, n) 
+  n_df <- floor(rnorm(1, n, n/3)) #sample a sample size
+  n_df <- ifelse(n_df < 10, 10, n_df) #make sure sample is at least of size 10
+  simdata(es, var_n, n_df) 
 })
+
+n_tot <- sum(sapply(dfs, nrow))
+
 
 #obtain estimates for correlations and their standard errors
 res <- lapply(dfs, function(x){
@@ -74,20 +79,23 @@ bf_individual <- lapply(res.i, function(x){ #for all groups
 names(bf_individual) <- paste0("group", 1:k)
 
 #obtain BF_ic for every group and every hypothesis
-BFs <- matrix(NA, nrow = k, ncol = var_n) # create output table with N rows and 2 columns
-colnames(BFs) <- paste0("BF: ", sprintf("X%02d", 1:var_n), ">", hyp_val)
+BFs <- matrix(NA, nrow = k, ncol = var_n*2) # create output table with N rows and 2 columns
+colnames(BFs) <- c(paste0("BF_ic: ", sprintf("X%d", 1:var_n), ">", hyp_val),
+                   paste0("BF_iu: ", sprintf("X%d", 1:var_n), ">", hyp_val)    )
 rownames(BFs) <- paste0("group", 1:k)
 for(i in 1:k){
   for(j in 1:var_n){
     BFs[i,j] <- bf_individual[[i]][[j]]$fit$BF.c[1] #BF of Hi against Hc
+    BFs[i,(j+var_n)] <- bf_individual[[i]][[j]]$fit$BF.u[1] #BF of Hi against Hu
   }
 }
-results_i <- gPBF(BFs)
-results_i$GPBF[1,] #Geometric Product is average relative evidence for Hi over Hc for the groups.
+results_ic <- gPBF(BFs[,1:var_n])
+results_iu <- gPBF(BFs[,(var_n+1):(var_n*2)])
+results_i <- c(results_ic$GPBF[1,],results_iu$GPBF[1,]) #Geometric Product is average relative evidence for Hi over Hc for the groups.
 #if 1, This means equal support for both Hi and Hc
-results_i$GPBF[2,] #Evidence Rate = proportion of groups that favor the hypothesis that GmPBF also supports. 
+results_ic$GPBF[2,] #Evidence Rate = proportion of groups that favor the hypothesis that GmPBF also supports. 
 #If 0.5, half of the groups have BFac < gPBF and half have BFac > gPBF
-results_i$GPBF[3,] #Stability rate = proportion of groups that provide even stronger evidence for Hi vs Hc 
+results_ic$GPBF[3,] #Stability rate = proportion of groups that provide even stronger evidence for Hi vs Hc 
 #than gmPBF suggests.
 #if 0.5, half of groups provide stronger evidence than gPBF suggest, half provide weaker evidence. 
 
@@ -111,7 +119,7 @@ hyps <- paste0("(", paste0(colnames(res.t), collapse = ", "), ") > ", hyp_val)
 #create bf_together object to obtain the BFs for the (group1, group2, group3) > hyp_val hypothesis
 bf_together <- list()
 for(i in 1:var_n){
-  bf_together[[i]] <- bain(res.t[i,], hyps, n = n , Sigma = diag(sigs[i,]))
+  bf_together[[i]] <- bain(res.t[i,], hyps, n = n_tot , Sigma = diag(sigs[i,])) #should n be total sample size combined?
 }
 names(bf_together) <- paste0('r', 1:var_n) #names for clarity
 
@@ -124,10 +132,12 @@ for(i in 1:var_n){
   }
 
 t(BFs.t) #BF together
-results_i[["GPBF"]][1,] #GPBF individual
+results_ic[["GPBF"]][1,] #GPBF individual
+results_iu[["GPBF"]][1,]
+results_i
 
-results <- cbind(as.vector(t(BFs.t)), t(results_i[["GPBF"]]))
-colnames(results) <- c("BF_together", colnames(results[,2:4]))
+results <- cbind(as.vector(t(BFs.t)), results_i)
+colnames(results) <- c("BF_together", "gPBF")
 
 
 
