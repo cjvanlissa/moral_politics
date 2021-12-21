@@ -17,13 +17,14 @@ n <- 100
 hyp_val <- 0.1
 es <- 0.1
 k <- 5
+tau2 <- 1
 
 
 #simulate data for every group
 dfs <- lapply(1:k, function(i){
   n_df <- floor(rnorm(1, n, n/3)) #sample a sample size
   n_df <- ifelse(n_df < 10, 10, n_df) #make sure sample is at least of size 10
-  simdata(es, var_n, n_df) 
+  simdata(es, var_n, n_df, tau2) 
 })
 
 n_tot <- sum(sapply(dfs, nrow))
@@ -238,7 +239,7 @@ BFs <- function(es, var_n, n, hyp_val, k){
 #specify hyperparameters
 HyperPar <- list(
   es = c(0, 0.1, 0.2), #true effect size = true correlation with outcome
-  #tau2 = c(0, 0.1, 0.3), #reliability of measurement
+  tau2 = c(1, 1.5, 2), #reliability of measurement (variance of measurements)
   n = c(300), #sample size (can be divided by I to obtain different sample sizes per group )
   k = c(10), #number of groups
   hyp_val = c(0, 0.1, 0.2), #thresholds for informative hypotheses

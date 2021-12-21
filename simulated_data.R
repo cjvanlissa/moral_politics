@@ -174,7 +174,8 @@ pop_mods <- lapply(list(us = pop_mod_us,
                           gsub(".1 ", true_es, x, fixed = TRUE) #replace effect size .1 with true_es
                         })
 
-mods_cor <- lapply(pop_mods, gsub, pattern = "[0-9\\. -]{2,}\\s?\\*", replacement = "")
+mods_cor <- lapply(pop_mods, gsub, pattern = "[0-9\\. -]{2,}\\s?\\*", replacement = "") #remove loadings so that SEM
+#model can estimate them.
 
 
 removeothercountries <- function(hyp, cnt){
@@ -231,14 +232,14 @@ sim_results <- replicate(100, {
 #sim_conditions <- readRDS("sim_conditions.RData")
 
 df_plot <- do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
-  sim_results <- sim_conditions[[thiscond]]
+  sim_results <- sim_conditions[[thiscond]] #results of specific condition
   df_plot <- do.call(rbind, lapply(1:nrow(sim_results), function(i){
-    themed <- median(sim_results[i, ], na.rm = TRUE)
-    prop3 <- na.omit(sim_results[i, ])
-    prop3 <- sum(prop3 >3)/length(prop3)
+    themed <- median(sim_results[i, ], na.rm = TRUE) #median of iteration i of specific condition
+    prop3 <- na.omit(sim_results[i, ]) #delete all nonconverged results
+    prop3 <- sum(prop3 >3)/length(prop3) #proportion of BFs > 3.
     data.frame(Hypothesis = paste0("H", i, ", BFmed = ", formatC(themed, 2, format = "f"), ", p(BF > 3) = ", formatC(prop3, 2, format = "f")),
                Value = sim_results[i, ],
-               Median = median(sim_results[i, ], na.rm = TRUE))
+               Median = median(sim_results[i, ], na.rm = TRUE)) #median of replications with specific conditions
   }))
   df_plot$Condition <- paste0("R = ", c(0, .1, .2, .3)[thiscond])
   df_plot
@@ -258,7 +259,7 @@ apply(sim_conditions[[2]], 1, function(x){
   x <- na.omit(x)
   sum(x >3)/length(x)})
 
-
+#rbind for every condition, for every hypothesis the median, standard deviations and proporiton BF > 3 over the iterations. 
 df_plot <- do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
   sim_results <- sim_conditions[[thiscond]]
   #browser()
@@ -269,7 +270,7 @@ df_plot <- do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
   
 }))
 
-
+#rbind for every condition, for every hypothesis the proporiton BF > 3 over the iterations. 
 tab_power <- data.frame(t(do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
   sim_results <- sim_conditions[[thiscond]]
   #browser()
@@ -281,7 +282,7 @@ tab_power <- data.frame(t(do.call(rbind, lapply(1:length(sim_conditions), functi
 }))))
 
 names(tab_power) <- paste0("R = ", c(0, .1, .2, .3))
-tab_power[8:9, ] <- 1-tab_power[8:9, ]
-rownames(tab_power) <- paste0("Hypothesis ", 1:9)
+#tab_power[8:9, ] <- 1-tab_power[8:9, ]
+rownames(tab_power) <- paste0("Hypothesis ", 1:7)
 
 write.csv(tab_power, "tab_power.csv")

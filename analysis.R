@@ -17,7 +17,7 @@ hypotheses <- list("(fam_secs_soc_us, fam_secs_eco_us, fam_sepa_soc_dk, fam_sepa
 
 
 mods_cor <- lapply(names(dat), function(country){
-  cntdat <- dat[[country]][unlist(use_scales[[country]])]
+  cntdat <- dat[[country]][unlist(use_scales[[country]])] #subset of dataframe belonging to specific country
   mod <- tidy_sem(cntdat)
   measurement(mod)
 })
