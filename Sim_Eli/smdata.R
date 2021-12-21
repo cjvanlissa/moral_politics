@@ -1,5 +1,5 @@
 #simulate data function
-simdata <- function(es,var_n, n){
+simdata <- function(es,var_n, n, tau2){
   var_n <- var_n + 1     #to include outcome variable in mvrnorm()
   M <- rep(0,var_n)      #set mean to 0 for identification
   
@@ -7,15 +7,16 @@ simdata <- function(es,var_n, n){
   #diag(S)[-1] <- tau2   #add extra variance to predictors
   #diag(S)[1] <- tau2    #add extra noise to outcome measurement
   
-  #this now sets all covariances s_y, s_xi to the same value. we can add some variability in the covariances
+  #this now sets all correlations s_y, s_xi to the same value.
   S[,1][-1] <- es #covariances with outcome variable 
+  S[1,][-1] <- es  
+  sds <- rep(tau2, var_n) #reliability of measurements
+  S <- diag(sds)%*%S%*%diag(sds) #convert to covariance matrix
   
   df <-  mvrnorm(n, M, S, tol = 1E-6, empirical = F) #generate data
-  colnames(df) <- c('y', sprintf("X%02d", 1:(var_n-1))) #give names
+  colnames(df) <- c('y', sprintf("X%d", 1:(var_n-1))) #give names
   return(df)
 }
-
-
 
 #product BF
 gPBF <- function(BFs){
@@ -35,3 +36,4 @@ gPBF <- function(BFs){
   class(out) <- "gPBF"
   return(out)
 }
+
