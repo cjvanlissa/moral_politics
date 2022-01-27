@@ -13,7 +13,7 @@ results2 <- readRDS("./Sim_Eli/results_Eli2.RData")
 
 #to test
 var_n <- 4
-n <- 200
+n <- 200 #mean sample size per group
 hyp_val <- 0.2
 es <- 0
 k <- 5
@@ -119,28 +119,22 @@ BFs <- function(es, var_n, n, hyp_val, k, tau2){
     BFs.t[i,2] <- bf_together[[i]]$fit$BF.u[1] #BF of Hi against Hu
   }
   
-  #t(BFs.t) #BF together
-  #results_i[["GPBF"]][1,] #GPBF individual
-  
   
   ### combine all results
   all_BFs <- cbind(as.vector(t(BFs.t)), results_i, results_i_prod)
   colnames(all_BFs) <- c("BF_together", "gPBF", "BF_prod")
+  BFs_ic <- all_BFs[1:var_n, ]
+  BFs_iu <- all_BFs[(var_n+1):(var_n*2),]
+  
   
   #calculate percentage correct
-  prop_correct <- apply(all_BFs, 2, function(x){
-    if(length(BF_threshold) == 1 && BF_threshold == 3){
-      sum(x >= BF_threshold) / (var_n*2)
-    } else if(length(BF_threshold) == 1 && BF_threshold == 0.33){
-      sum(x <= 0.33) / (var_n*2)
-    }else{
-      sum(x > min(BF_threshold) & x < max(BF_threshold)) / (var_n*2)
-    }
-  })
+  prop_cor_ic <- apply(BFs_ic, 2, function(x) prop_correct(x, BF_threshold = BF_threshold, var_n))
+  prop_cor_iu <- apply(BFs_iu, 2, function(x) prop_correct(x, BF_threshold = BF_threshold, var_n))
+  proportion_correct <- rbind(H_ic = prop_cor_ic, H_iu = prop_cor_iu)
   
   result <- list(Bayes_Factors = all_BFs,
                  conds = c(es = es, var_n = var_n, n = n, hyp_val = hyp_val, k = k, tau2 = tau2),
-                 proportion_correct = prop_correct)
+                 proportion_correct = proportion_correct)
   return(result)
 }
 
@@ -170,16 +164,18 @@ results <- apply(conditions, 1, function(x){
 names(results) <- sprintf("sim%d", 1:length(results))
 saveRDS(results, file = "./Sim_Eli/results_Eli2.RData")
 
-#quickly check how algorithms did.
-algorithms <- c("BF_t", "gPBF", "BF_prod")
-tst <- matrix(NA,length(results), length(algorithms))
-colnames(tst) <- algorithms
-for(i in 1:nrow(tst)){
-  tst[i,] = results[[i]]$proportion_correct
-}
-tst
-#watch this
-cbind(es = conditions$es, gpbf = tst[,2])
-#gpbf has usually has either no or complete percentage correct. It seems to almost entirely depend on the value of es.
 
+format(object.size(results), units = "Mb")
+
+
+
+#quickly check how algorithms did on both H_ic en H_iu.
+algorithms <- c("BF_t", "gPBF", "BF_prod")
+H_ic <- matrix(NA,length(results), length(algorithms))
+H_iu <- H_ic
+colnames(H_iu) <- colnames(H_ic) <- algorithms
+for(i in 1:nrow(H_ic)){
+  H_ic[i,] = results[[i]]$proportion_correct[1,]
+  H_iu[i,] = results[[i]]$proportion_correct[2,]
+}
 

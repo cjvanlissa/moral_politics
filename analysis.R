@@ -15,7 +15,6 @@ hypotheses <- list("(fam_secs_soc_us, fam_secs_eco_us, fam_sepa_soc_dk, fam_sepa
                    "(pro_secs_soc_us, pro_secs_eco_us, pro_sepa_soc_dk, pro_sepa_eco_dk, pro_secs_soc_nl, pro_secs_eco_nl, pro_sepa_soc_nl, pro_sepa_eco_nl) > .1"
                    )
 
-
 mods_cor <- lapply(names(dat), function(country){
   cntdat <- dat[[country]][unlist(use_scales[[country]])] #subset of dataframe belonging to specific country
   mod <- tidy_sem(cntdat)

@@ -37,3 +37,13 @@ gPBF <- function(BFs){
   return(out)
 }
 
+
+prop_correct <- function(x, BF_threshold, var_n){
+  if(length(BF_threshold) == 1 && BF_threshold == 3){
+    sum(x >= BF_threshold) / (var_n)
+  } else if(length(BF_threshold) == 1 && BF_threshold == 0.33){
+    sum(x <= 0.33) / (var_n)
+  }else{
+    sum(x > min(BF_threshold) & x < max(BF_threshold)) / (var_n)
+  }
+}
