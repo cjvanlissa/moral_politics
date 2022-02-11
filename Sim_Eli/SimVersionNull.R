@@ -12,7 +12,7 @@ results <- readRDS("./Sim_Eli/results_Eli2.RData")
 ### MINI SIMULATION CAN BE FOUND ON LINE 133 AND FURTHER ###
 
 #to test
-var_n <- 3
+var_n <- 1
 n <- 100
 hyp_val <- 0.1
 es <- 0.1
@@ -24,7 +24,7 @@ tau2 <- 1
 dfs <- lapply(1:k, function(i){
   n_df <- floor(rnorm(1, n, n/3)) #sample a sample size
   n_df <- ifelse(n_df < 10, 10, n_df) #make sure sample is at least of size 10
-  simdata(es, var_n, n_df, tau2) 
+  simdata(es, n_df, tau2) 
 })
 
 n_tot <- sum(sapply(dfs, nrow))
