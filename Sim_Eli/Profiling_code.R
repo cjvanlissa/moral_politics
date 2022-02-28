@@ -98,6 +98,3 @@ hypotheses <- lapply(seq(1, to = k*var_n, by = k), function(i){
 })
 
 
-
-
-

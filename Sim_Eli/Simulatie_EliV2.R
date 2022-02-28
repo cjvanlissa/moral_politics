@@ -117,7 +117,9 @@ res <- readRDS(file.path("./Sim_Eli", paste0("sim_results_", Sys.Date(), ".RData
 #######################
 # TRYING fread_many() #
 #######################
-files <- list.files(path = "C:/Users/e_lib/OneDrive/Documents/GitHub/moral_politics/Sim_Eli/Results", pattern = "result", full.names = T)
+dir <- paste0(getwd(), "/Sim_Eli/Results")
+files <- list.files(path = dir, pattern = "result", full.names = T)
+
 
 fread_many = function(files,header=F,...){
   if(length(files)==0) return()
@@ -131,11 +133,16 @@ fread_many = function(files,header=F,...){
     system(paste0('head -n1 ',files[1],' > ',tmp))
     system(paste0("xargs awk 'FNR>1' >> ",tmp),input=files)
   } else {
-    system(paste0("xargs awk '1' > ",tmp),input=files) #invokes OS command, but I have little OS knowledge
+    system2(paste0("xargs awk '1' > ",tmp),input=files) #invokes OS command, but I have little OS knowledge
   }
   
   DT = fread(file=tmp,header=header,...)
   file.remove(tmp)
   DT
 }
+tmp = tempfile(fileext = ".csv")
+setwd(dir = dir)
+tmp <- gsub("\\\\", "/", tempfile(tmpdir = dir, fileext = ".csv"))
+tempdir()
 
+cmd <- paste0("echo", files[1])
