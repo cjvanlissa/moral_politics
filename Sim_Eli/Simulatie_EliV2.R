@@ -123,6 +123,16 @@ file.remove(f)
 ########################
 # Prelimanary Analyses #
 ########################
+library(data.table)
+
+#algorithms we used
+algorithms <- c("gpbf", "prodbf", "tbf")
+hyps <- c("_ic", "_iu")
+alg_names <- paste0(rep(algorithms, each = length(hyps)), hyps)
+
+#some preparation
+summarydata <- readRDS("./Sim_Eli/summarydata.RData")
+conditions <- c("ndataset", "es", "tau2", "n", "k", "hyp_val")
 res <- readRDS(file.path("Sim_Eli", paste0("sim_results_", Sys.Date(), ".RData")))
 lc <- length(conditions)
 
@@ -132,99 +142,43 @@ unique_conds <- t(apply(unique_conds, 1, function(x){
   paste(paste0(colnames(unique_conds), " == ", x), collapse = " & ")
 }))
 
+#convert res to datatable and make outcome values numeric
 res <- as.data.table(res)
 res[, c(lc:ncol(res)):=lapply(.SD, as.numeric), .SDcols=c(lc:ncol(res))]
 
+#we will sample 16 conditions to plot and make a nice colorgradient for fun
+N <- 16
 colfunc <- colorRampPalette(c("red", "blue"))
-colors <- colfunc(16)
+colors <- colfunc(N)
 
-library(ggplot2)
-#function to plot the conditions
+#function to plot histogram of BFs of a condition
 plotcond <- function(outcome, name, condition, col){
   condition <- unlist(strsplit(condition, "&"))
   condition <- gsub("==", "=", condition)
   condition <- paste(condition, collapse = " ")
   propBF3 <- sum(outcome > 3) / length(outcome)
   hist(outcome, main = condition, col = col,
-       xlab = paste0("median: ", round(median(outcome),2), "; sd: ", round(sd(outcome),2), 
-                     "; prop BF > 3: ", round(propBF3,2)))
-  #legend("topright", condition, cex = 0.8)
+       xlab = paste0("median: ", round(median(outcome),2),
+                     ";    sd: ", round(sd(outcome),2), 
+                     ";    prop BF > 3: ", round(propBF3,2)),
+       cex.lab = 1.3)
 }
 
+#Sample 16 integers from 1 to length(unique_conds)
 set.seed(6164900)
 sample_cond <- sample(1:length(unique_conds), 16)
-plot16 <- function(name){
+
+#plot histogram s of the calculated BayesFactors from 16 random conditions in a single grid
+plot16 <- function(name, line = -1.5){
   par(mfrow = c(4,4))
   for(i in seq_along(sample_cond)){
-    res[eval(parse(text=unique_conds[i])),
-        .(plotcond(eval(parse(text = name)), name, unique_conds[i], col = colors[i]))]
+    res[eval(parse(text=unique_conds[sample_cond[i]])),
+        .(plotcond(eval(parse(text = name)), name, unique_conds[sample_cond[i]], col = colors[i]))]
   }
+  mtext(paste0("Density of ", name, " for 16 randomly sampled conditions"), side = 3, line = line, outer = T, cex = 1)
 }
 
-plot16("gpbf_iu")
-
-
-
-
-
-
-
-
-
-
-
-
-plotcond2 <- function(cond){
-  subcond <- res[eval(parse(text=cond))]
-  outcome <- subcond$gpbf_ic
-  propBF3 <- sum(outcome > 3) / length(outcome)
-  
-  ggplot(subcond, aes(x = gpbf_ic)) +
-    geom_density() +
-    theme_bw() +
-    xlab(paste0("median: ", round(median(outcome),2), "; sd: ", round(sd(outcome),2), 
-                "; prop BF > 3: ", round(propBF3,2))) +
-    legend()
-}
-plotcond2(unique_conds[1])
-
-
-ggplot(tt, aes(x = gpbf_ic))+
-  geom_density()+
-  #geom_vline(data = df_plot[!duplicated(df_plot$Variable), ], aes(xintercept = Median))+
-  #geom_text(data = df_plot[!duplicated(df_plot$Variable), ], aes(label = round(Median), x = Median), y = .2, hjust = -1)+
-  facet_grid(Hypothesis~Condition, scales = "free")+
-  scale_x_log10() +
-  labs(title = "Distribution of Bayes factors for each hypothesis across 100 replications")
-
-apply(sim_conditions[[2]], 1, function(x){
-  x <- na.omit(x)
-  sum(x >3)/length(x)})
-
-
-df_plot <- do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
-  sim_results <- sim_conditions[[thiscond]]
-  #browser()
-  sapply(1:nrow(sim_results), function(i){
-    prop3 <- na.omit(sim_results[i, ])
-    c(median(sim_results[i, ], na.rm = TRUE), sd(sim_results[i, ], na.rm = TRUE), sum(prop3 >3)/length(prop3))
-  })
-  
-}))
-
-
-tab_power <- data.frame(t(do.call(rbind, lapply(1:length(sim_conditions), function(thiscond){
-  sim_results <- sim_conditions[[thiscond]]
-  #browser()
-  sapply(1:nrow(sim_results), function(i){
-    prop3 <- na.omit(sim_results[i, ])
-    sum(prop3 >3)/length(prop3)
-  })
-  
-}))))
-
-names(tab_power) <- paste0("R = ", c(0, .1, .2, .3))
-tab_power[8:9, ] <- 1-tab_power[8:9, ]
-rownames(tab_power) <- paste0("Hypothesis ", 1:9)
-
-write.csv(tab_power, "tab_power.csv")
+#save to pdf
+pdf(file = paste0("Sim_Eli/first_results.pdf"), width = 15, height = 10)
+for(i in 1:length(alg_names)){plot16(alg_names[i])}
+dev.off()
