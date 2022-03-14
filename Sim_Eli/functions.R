@@ -1,9 +1,18 @@
 #simulate data function
 simdata <- function(es, n, tau2){
   S <- diag(2) * 1                  # initiate covariance matrix
+  rho <- rnorm(1, es, sqrt(tau2))   # generate correlation coefficient
   
-  S[row(S) != col(S)] <- es         # correlation between predictor and outcome (off-diagonals)
-  sds <-  c(tau2,1)                 # reliability of predictor and outcome, vary outcome reliability
+  while(rho > 1 | rho < -1){
+    rho <- rnorm(1, es, sqrt(tau2)) # make sure correlation coefficient is a possible value
+  }
+  
+  # evt alternative for while loop
+  # ifelse(rho > 1, 1, rho) 
+  # ifelse(rho < 1, -1, rho)
+  
+  S[row(S) != col(S)] <- rho        # correlation between predictor and outcome (off-diagonals)
+  sds <- c(1,1)                     # reliability of predictor and outcome, vary outcome reliability
   S <- diag(sds)%*%S%*%diag(sds)    # convert correlation to covariance matrix
   
   df <-  mvrnorm(n, mu = rep(0,2), S, tol = 1E-6, empirical = F) #generate data
