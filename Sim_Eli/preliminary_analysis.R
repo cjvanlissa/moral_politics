@@ -27,8 +27,6 @@ res[, c(lc:ncol(res)):=lapply(.SD, as.numeric), .SDcols=c(lc:ncol(res))]
 
 # we will sample 16 conditions to plot
 N <- 16
-# colfunc <- colorRampPalette(c("red", "blue"))
-# colors <- colfunc(N)
 colors <- c('#c15cf7', '#dda7fa', '#5c8df7', '#acc5fa', '#f5bd3b', '#ffe7b0')
 
 # Sample 16 integers from 1 to length(unique_conds)

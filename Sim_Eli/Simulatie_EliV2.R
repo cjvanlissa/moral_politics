@@ -6,7 +6,6 @@ cat("\014")
 dependencies <- c('MASS', 'bain')
 lapply(dependencies, function(x){library(x, character.only = T)})
 
-
 # Check package versions
 versions <- c(
   compareVersion(as.character(packageVersion("bain")), "0.2.8"),
@@ -16,24 +15,23 @@ if(!all(versions == 0)) stop("Using the incorrect version of one or more package
 # Load simulation functions from source -----------------------------------
 source('Sim_Eli/functions.R')
 
-#set conditions for simulation
-nreps <- 50                   #number of replications per condition
+# set conditions for simulation
 hyper_parameters<-list(
-  ndataset = 1:nreps,
-  es = c(0, 0.1, 0.5),        # true effect size = true correlation with outcome
-  tau2 = c(0, .1),             # reliability of outcome (standard deviation of outcome) (NOTE)
-  n = c(30, 300),            # mean sample size per group
+  ndataset = 1:2,            # number of replications per condition
+  es = c(0, 0.1),        # true effect size = true correlation with outcome
+  tau2 = c(0, .1),            # reliability of outcome (standard deviation of outcome) (NOTE)
+  n = c(30, 300),             # mean sample size per group
   k = c(3, 10),               # number of groups
-  hyp_val = c(0, 0.1, 0.5)    # thresholds for informative hypotheses
+  hyp_val = c(0, 0.1)    # thresholds for informative hypotheses
 )
 
-# Create grid with simulation parameters and save it as .RData file extension
+# Create hypergrid with simulation parameters and save it as .RData file extension
 summarydata <- expand.grid(hyper_parameters, stringsAsFactors = FALSE)
 saveRDS(summarydata, file = "./Sim_Eli/summarydata.RData")
 # summarydata<-readRDS("./Sim_Eli/summarydata.RData")
 
 
-# Delete folder where previous results are in and create folder 'Results' folder
+# Delete folder where previous results are in and create new 'Results' folder
 unlink("./sim_Eli/Results", recursive = T)
 dir.create("./Sim_Eli/Results")
 
@@ -50,14 +48,14 @@ registerDoSNOW(cl)
 pb <- txtProgressBar(min = 0, max = nrow(summarydata), style = 3)
 opts <- list(progress = function(n) setTxtProgressBar(pb, n))
 
-# export nalg and nreps and set seed over clusters
+# export nalg and vector of seeds to all clusters
 set.seed(6164900)
 seeds <- sample(1:.Machine$integer.max, nrow(summarydata))
 clusterExport(cl, c('nalg', 'seeds'))
 
-
-# run parallel computation
+# run simulation
 foreach(rownum = 1:nrow(summarydata), .options.snow = opts, .packages = c("bain", "MASS")) %dopar% {
+  
   set.seed(seeds[rownum])
   res <-  tryCatch(
     c(rownum, 
@@ -66,7 +64,7 @@ foreach(rownum = 1:nrow(summarydata), .options.snow = opts, .packages = c("bain"
              hyp_val = summarydata[rownum, "hyp_val"],
              k =summarydata[rownum, "k"],
              tau2 = summarydata[rownum, "tau2"])),
-             error = function(e){c(rownum, rep(NA, nalg))}
+          error = function(e){c(rownum, rep(NA, nalg))}
     )
   
   # every cluster writes its own .txt file where the results for every iteration are stored
@@ -84,9 +82,9 @@ stop("End of simulation")
 # Merge files -------------------------------------------------------------
 library(data.table)
 
-#algorithms
+# algorithms (geometric product Bayes Factor, product Bayes Factor, together Bayes Factor)
 algorithms <- c("gpbf", "prodbf", "tbf")
-hyps <- c("_ic", "_iu")
+hyps <- c("_ic", "_iu")  # using both complementary and unconstrained
 alg_names <- paste0(rep(algorithms, each = length(hyps)), hyps)
 
 # read in the simulation conditions 
@@ -100,12 +98,15 @@ tab <- setorderv(
     fread(file)
   })),
   cols = "V1", order = 1L, na.last = F)
+
+# make sure results are same length as conditions
 if(!(tab$V1[1] == 1 & tail(tab$V1, 1) == nrow(res) & length(unique(tab$V1)) == nrow(res))){
-  stop()
+  stop("Results not the same length as number of simulation iterations")
 }
+
+# give appropriate names to the simulation results and omit identification variable 'V1'
 names(tab) <- c("V1", alg_names)
 tab[, "V1" := NULL]
-
 
 # cbind conditions and results
 res<- cbind(res, tab)
