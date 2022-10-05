@@ -1,4 +1,4 @@
-Codebook created on 2021-11-05 at 2021-11-05 12:56:18
+Codebook created on 2022-06-27 at 2022-06-27 15:12:48
 ================
 
 A codebook contains documentation and metadata describing the contents,
@@ -10,39 +10,1542 @@ The data contains 552 cases and 31 variables.
 
 ## Codebook
 
-| name         | type                                 |   n | missing | unique | mean | median | mode | mode\_value |   sd |    v | min | max | range |  skew | skew\_2se |  kurt | kurt\_2se |
-|:-------------|:-------------------------------------|----:|--------:|-------:|-----:|-------:|-----:|------------:|-----:|-----:|----:|----:|------:|------:|----------:|------:|----------:|
-| sepa\_soc\_1 | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      7 |      |        |  317 |           5 |      | 0.60 |     |     |       |       |           |       |           |
-| sepa\_soc\_2 | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      7 |      |        |  142 |           2 |      | 0.80 |     |     |       |       |           |       |           |
-| sepa\_soc\_3 | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      7 |      |        |  273 |           5 |      | 0.68 |     |     |       |       |           |       |           |
-| sepa\_soc\_4 | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      7 |      |        |  131 |           3 |      | 0.81 |     |     |       |       |           |       |           |
-| sepa\_soc\_5 | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      7 |      |        |  159 |           5 |      | 0.80 |     |     |       |       |           |       |           |
-| sepa\_eco\_1 | numeric                              | 552 |       0 |      6 | 3.71 |      4 |    4 |             | 1.33 |      |   1 |   6 |     5 |  0.05 |      0.23 | -0.82 |     -1.97 |
-| sepa\_eco\_2 | numeric                              | 552 |       0 |      6 | 3.63 |      4 |    4 |             | 1.35 |      |   1 |   6 |     5 |  0.19 |      0.93 | -0.78 |     -1.89 |
-| sepa\_eco\_3 | numeric                              | 552 |       0 |      6 | 3.64 |      4 |    4 |             | 1.37 |      |   1 |   6 |     5 | -0.07 |     -0.33 | -0.80 |     -1.94 |
-| sepa\_eco\_4 | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      7 |      |        |  183 |           4 |      | 0.77 |     |     |       |       |           |       |           |
-| sepa\_eco\_5 | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      7 |      |        |  184 |           4 |      | 0.75 |     |     |       |       |           |       |           |
-| fam\_1       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  146 |           4 |      | 0.82 |     |     |       |       |           |       |           |
-| fam\_2       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  167 |           7 |      | 0.79 |     |     |       |       |           |       |           |
-| fam\_3       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  169 |           4 |      | 0.79 |     |     |       |       |           |       |           |
-| grp\_1       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  171 |           5 |      | 0.78 |     |     |       |       |           |       |           |
-| grp\_2       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  217 |           4 |      | 0.75 |     |     |       |       |           |       |           |
-| grp\_3       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  162 |           6 |      | 0.76 |     |     |       |       |           |       |           |
-| rec\_1       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  145 |           5 |      | 0.79 |     |     |       |       |           |       |           |
-| rec\_2       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  178 |           7 |      | 0.75 |     |     |       |       |           |       |           |
-| rec\_3       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  143 |           5 |      | 0.78 |     |     |       |       |           |       |           |
-| her\_1       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  150 |           4 |      | 0.78 |     |     |       |       |           |       |           |
-| her\_2       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  195 |           4 |      | 0.78 |     |     |       |       |           |       |           |
-| her\_3       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  140 |           4 |      | 0.83 |     |     |       |       |           |       |           |
-| def\_1       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  175 |           4 |      | 0.80 |     |     |       |       |           |       |           |
-| def\_2       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  170 |           4 |      | 0.81 |     |     |       |       |           |       |           |
-| def\_3       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  181 |           4 |      | 0.78 |     |     |       |       |           |       |           |
-| fai\_1       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  159 |           7 |      | 0.81 |     |     |       |       |           |       |           |
-| fai\_2       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  229 |           7 |      | 0.74 |     |     |       |       |           |       |           |
-| fai\_3       | haven\_labelled, vctrs\_vctr, double | 552 |       0 |      8 |      |        |  165 |           4 |      | 0.80 |     |     |       |       |           |       |           |
-| pro\_1       | numeric                              | 552 |       0 |      7 | 4.38 |      4 |    4 |             | 1.77 |      |   1 |   7 |     6 | -0.10 |     -0.48 | -0.81 |     -1.95 |
-| pro\_2       | numeric                              | 552 |       0 |      7 | 5.49 |      6 |    6 |             | 1.50 |      |   1 |   7 |     6 | -0.76 |     -3.64 | -0.19 |     -0.47 |
-| pro\_3       | numeric                              | 552 |       0 |      7 | 5.45 |      6 |    6 |             | 1.58 |      |   1 |   7 |     6 | -0.85 |     -4.08 | -0.04 |     -0.10 |
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+name
+</th>
+<th style="text-align:left;">
+type
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+missing
+</th>
+<th style="text-align:right;">
+unique
+</th>
+<th style="text-align:right;">
+mean
+</th>
+<th style="text-align:right;">
+median
+</th>
+<th style="text-align:right;">
+mode
+</th>
+<th style="text-align:right;">
+mode_value
+</th>
+<th style="text-align:right;">
+sd
+</th>
+<th style="text-align:right;">
+v
+</th>
+<th style="text-align:right;">
+min
+</th>
+<th style="text-align:right;">
+max
+</th>
+<th style="text-align:right;">
+range
+</th>
+<th style="text-align:right;">
+skew
+</th>
+<th style="text-align:right;">
+skew_2se
+</th>
+<th style="text-align:right;">
+kurt
+</th>
+<th style="text-align:right;">
+kurt_2se
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+sepa_soc_1
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+317
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.60
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sepa_soc_2
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+142
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.80
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sepa_soc_3
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+273
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.68
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sepa_soc_4
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+131
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.81
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sepa_soc_5
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+159
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.80
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sepa_eco_1
+</td>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+3.71
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1.33
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.05
+</td>
+<td style="text-align:right;">
+0.23
+</td>
+<td style="text-align:right;">
+-0.82
+</td>
+<td style="text-align:right;">
+-1.97
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sepa_eco_2
+</td>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+3.63
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1.35
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.19
+</td>
+<td style="text-align:right;">
+0.93
+</td>
+<td style="text-align:right;">
+-0.78
+</td>
+<td style="text-align:right;">
+-1.89
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sepa_eco_3
+</td>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+3.64
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1.37
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+-0.07
+</td>
+<td style="text-align:right;">
+-0.33
+</td>
+<td style="text-align:right;">
+-0.80
+</td>
+<td style="text-align:right;">
+-1.94
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sepa_eco_4
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+183
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.77
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sepa_eco_5
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+184
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.75
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fam_1
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+146
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.82
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fam_2
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+167
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.79
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fam_3
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+169
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.79
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+grp_1
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+171
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+grp_2
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+217
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.75
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+grp_3
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+162
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.76
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+rec_1
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+145
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.79
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+rec_2
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+178
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.75
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+rec_3
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+143
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+her_1
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+150
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+her_2
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+195
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+her_3
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+140
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.83
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+def_1
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+175
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.80
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+def_2
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+170
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.81
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+def_3
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+181
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fai_1
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+159
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.81
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fai_2
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+229
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.74
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fai_3
+</td>
+<td style="text-align:left;">
+haven_labelled, vctrs_vctr, double
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+165
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+0.80
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pro_1
+</td>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+4.38
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1.77
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+-0.10
+</td>
+<td style="text-align:right;">
+-0.48
+</td>
+<td style="text-align:right;">
+-0.81
+</td>
+<td style="text-align:right;">
+-1.95
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pro_2
+</td>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+5.49
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1.50
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+-0.76
+</td>
+<td style="text-align:right;">
+-3.64
+</td>
+<td style="text-align:right;">
+-0.19
+</td>
+<td style="text-align:right;">
+-0.47
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pro_3
+</td>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:right;">
+552
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+5.45
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1.58
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+-0.85
+</td>
+<td style="text-align:right;">
+-4.08
+</td>
+<td style="text-align:right;">
+-0.04
+</td>
+<td style="text-align:right;">
+-0.10
+</td>
+</tr>
+</tbody>
+</table>
 
 ### Legend
 
@@ -54,7 +1557,7 @@ The data contains 552 cases and 31 variables.
 -   **median**: Median value
 -   **mode**: Most common value (for categorical variables, this shows
     the frequency of the most common category)
--   **mode\_value**: For categorical variables, the value of the most
+-   **mode_value**: For categorical variables, the value of the most
     common category
 -   **sd**: Standard deviation (measure of dispersion for numerical
     variables
@@ -63,10 +1566,10 @@ The data contains 552 cases and 31 variables.
 -   **max**: Maximum value
 -   **range**: Range between minimum and maximum value
 -   **skew**: Skewness of the variable
--   **skew\_2se**: Skewness of the variable divided by 2\*SE of the
+-   **skew_2se**: Skewness of the variable divided by 2\*SE of the
     skewness. If this is greater than abs(1), skewness is significant
 -   **kurt**: Kurtosis (peakedness) of the variable
--   **kurt\_2se**: Kurtosis of the variable divided by 2\*SE of the
+-   **kurt_2se**: Kurtosis of the variable divided by 2\*SE of the
     kurtosis. If this is greater than abs(1), kurtosis is significant.
 
 This codebook was generated using the [Workflow for Open Reproducible

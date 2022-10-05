@@ -14,7 +14,7 @@ knit: worcs::cite_all
 # Then, uncomment the line below to load the original or synthetic data
 # (whichever is available), to allow anyone to reproduce your code:
 library("worcs")
-run_everything = FALSE
+run_everything = TRUE
 knitr::opts_chunk$set(echo = FALSE, results = "hide", message = FALSE, warning = FALSE)
 options(knitr.kable.NA = '')
 library(ggplot2)
@@ -236,6 +236,10 @@ removeparameters <- function(hyp, est){
 }
 
 res_list <- lapply(mods_cor, function(x){estimate_lavaan(x)})
+# simdat <- lapply(1:3, function(i) simulateData(parTable(res_list[[i]]), sample.nobs = sample_sizes[i]))
+# for(i in 1:3){
+#   worcs::add_synthetic(simdat[[i]], original_name = paste0(names(mods_cor)[i], ".csv"), worcs_directory = "../")
+# }
 res_list17 <- res_list
 res <- lapply(names(res_list), function(country){
   thisfit = res_list[[country]]
@@ -564,7 +568,7 @@ library(lavaan)
 library(BFpack)
 library(ggplot2)
 library(tidySEM)
-tris <- load_data(to_envir = FALSE)[["tris"]]
+tris <- load_data(to_envir = FALSE, worcs_directory = "../")[["tris"]]
 
 
 # Descriptives ------------------------------------------------------------
@@ -678,6 +682,10 @@ removeparameters <- function(hyp, est) {
 }
 
 res17 <- estimate_lavaan(mod_cor)
+#simdat <- simulateData(parTable(res17), sample.nobs = nrow(tris))
+#worcs::add_synthetic(simdat, original_name = "tris.csv", worcs_directory = "../")
+
+
 res_tris <- res17
 tab <-
   bain:::lav_get_estimates(res17, standardize = TRUE, retain_which = "~~")

@@ -3,7 +3,7 @@ title: "Morality, politics, and cooperation"
 output:
   bookdown::html_document2:
     keep_md: yes
-date: '16 December, 2021'
+date: '20 May, 2022'
 bibliography: references.bib
 knit: worcs::cite_all
 ---

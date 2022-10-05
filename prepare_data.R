@@ -36,8 +36,10 @@ dk[rev_these] <- mapply(function(c, vec){c-vec}, c = maxval, vec = dk[rev_these]
 closed_data(dk, synthetic = FALSE)
 
 us <- read.csv("us_original.csv", stringsAsFactors = FALSE, skip = 2, header = FALSE)
-names_us <- read.csv("us_original.csv", stringsAsFactors = FALSE)
-names(us) <- tolower(names(names_us))
+names_us <- readLines("us_original.csv", n = 1)
+names_us <- strsplit(names_us, ",")[[1]]
+names_us <- tolower(names_us)
+names(us) <- names_us
 all(unlist(scales_list$us) %in% names(us))
 us <- us[unlist(scales_list$us)]
 names(us) <- unlist(lapply(names(scales_list$us), function(nam){paste0(nam, "_", 1:length(scales_list$us[[nam]]))}))
@@ -68,3 +70,11 @@ tris[rev_these] <- mapply(function(c, vec){c-vec}, c = maxval, vec = tris[rev_th
 
 names(tris) <- unlist(lapply(names(scales_tris), function(i){paste0(i, "_", 1:length(scales_tris[[i]]))}))
 closed_data(tris, synthetic = FALSE)
+
+dats <- list(dk = dk, nl = nl, us = us, tris = tris)
+for(n in names(dats)){
+  tmp <- tidySEM::tidy_sem(dats[[n]])
+  tmp <- tidySEM::create_scales(tmp)
+  write.csv(tmp$descriptives, file = paste0("descriptives_", n, ".csv"), row.names = FALSE)
+  write.csv(tmp$correlations, file = paste0("correlations_", n, ".csv"), row.names = FALSE)
+}

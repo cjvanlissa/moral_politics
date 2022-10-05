@@ -4,12 +4,16 @@ entry_point: manuscript/manuscript.Rmd
 data:
   nl.csv:
     codebook: codebook_nl.Rmd
+    synthetic: synthetic_nl.csv
   dk.csv:
     codebook: codebook_dk.Rmd
+    synthetic: synthetic_dk.csv
   us.csv:
     codebook: codebook_us.Rmd
+    synthetic: synthetic_us.csv
   tris.csv:
     codebook: codebook_tris.Rmd
+    synthetic: synthetic_tris.csv
 checksums:
   nl.csv: a135ddd8ce0cbfc81f57dad6a8120e9e
   dk.csv: 72e47cb6a9130b953aa6652cdfd79efc

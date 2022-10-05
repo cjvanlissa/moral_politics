@@ -20,3 +20,7 @@ us.csv
 !codebook_us.csv
 tris.csv
 !codebook_tris.csv
+!synthetic_nl.csv
+!synthetic_dk.csv
+!synthetic_us.csv
+!synthetic_tris.csv

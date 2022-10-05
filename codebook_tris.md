@@ -1,4 +1,4 @@
-Codebook created on 2021-11-10 at 2021-11-10 14:59:00
+Codebook created on 2022-06-27 at 2022-06-27 15:12:52
 ================
 
 A codebook contains documentation and metadata describing the contents,
@@ -53,20 +53,20 @@ range
 skew
 </th>
 <th style="text-align:right;">
-skew\_2se
+skew_2se
 </th>
 <th style="text-align:right;">
 kurt
 </th>
 <th style="text-align:right;">
-kurt\_2se
+kurt_2se
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-secs\_soc\_1
+secs_soc_1
 </td>
 <td style="text-align:left;">
 numeric
@@ -116,7 +116,7 @@ numeric
 </tr>
 <tr>
 <td style="text-align:left;">
-secs\_soc\_2
+secs_soc_2
 </td>
 <td style="text-align:left;">
 integer
@@ -166,7 +166,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-secs\_soc\_3
+secs_soc_3
 </td>
 <td style="text-align:left;">
 integer
@@ -216,7 +216,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-secs\_soc\_4
+secs_soc_4
 </td>
 <td style="text-align:left;">
 integer
@@ -266,7 +266,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-secs\_soc\_5
+secs_soc_5
 </td>
 <td style="text-align:left;">
 integer
@@ -316,7 +316,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-secs\_soc\_6
+secs_soc_6
 </td>
 <td style="text-align:left;">
 integer
@@ -366,7 +366,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-secs\_soc\_7
+secs_soc_7
 </td>
 <td style="text-align:left;">
 integer
@@ -416,7 +416,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-secs\_eco\_1
+secs_eco_1
 </td>
 <td style="text-align:left;">
 integer
@@ -466,7 +466,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-secs\_eco\_2
+secs_eco_2
 </td>
 <td style="text-align:left;">
 numeric
@@ -516,7 +516,7 @@ numeric
 </tr>
 <tr>
 <td style="text-align:left;">
-secs\_eco\_3
+secs_eco_3
 </td>
 <td style="text-align:left;">
 integer
@@ -566,7 +566,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-secs\_eco\_4
+secs_eco_4
 </td>
 <td style="text-align:left;">
 integer
@@ -616,7 +616,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-secs\_eco\_5
+secs_eco_5
 </td>
 <td style="text-align:left;">
 integer
@@ -666,7 +666,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-fam\_1
+fam_1
 </td>
 <td style="text-align:left;">
 integer
@@ -716,7 +716,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-fam\_2
+fam_2
 </td>
 <td style="text-align:left;">
 integer
@@ -766,7 +766,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-fam\_3
+fam_3
 </td>
 <td style="text-align:left;">
 integer
@@ -816,7 +816,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-grp\_1
+grp_1
 </td>
 <td style="text-align:left;">
 integer
@@ -866,7 +866,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-grp\_2
+grp_2
 </td>
 <td style="text-align:left;">
 integer
@@ -916,7 +916,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-grp\_3
+grp_3
 </td>
 <td style="text-align:left;">
 integer
@@ -966,7 +966,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-rec\_1
+rec_1
 </td>
 <td style="text-align:left;">
 integer
@@ -1016,7 +1016,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-rec\_2
+rec_2
 </td>
 <td style="text-align:left;">
 integer
@@ -1066,7 +1066,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-rec\_3
+rec_3
 </td>
 <td style="text-align:left;">
 integer
@@ -1116,7 +1116,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-her\_1
+her_1
 </td>
 <td style="text-align:left;">
 integer
@@ -1166,7 +1166,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-her\_2
+her_2
 </td>
 <td style="text-align:left;">
 integer
@@ -1216,7 +1216,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-her\_3
+her_3
 </td>
 <td style="text-align:left;">
 integer
@@ -1266,7 +1266,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-def\_1
+def_1
 </td>
 <td style="text-align:left;">
 integer
@@ -1316,7 +1316,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-def\_2
+def_2
 </td>
 <td style="text-align:left;">
 integer
@@ -1366,7 +1366,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-def\_3
+def_3
 </td>
 <td style="text-align:left;">
 integer
@@ -1416,7 +1416,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-fai\_1
+fai_1
 </td>
 <td style="text-align:left;">
 integer
@@ -1466,7 +1466,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-fai\_2
+fai_2
 </td>
 <td style="text-align:left;">
 integer
@@ -1516,7 +1516,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-fai\_3
+fai_3
 </td>
 <td style="text-align:left;">
 integer
@@ -1566,7 +1566,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-pro\_1
+pro_1
 </td>
 <td style="text-align:left;">
 integer
@@ -1616,7 +1616,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-pro\_2
+pro_2
 </td>
 <td style="text-align:left;">
 integer
@@ -1666,7 +1666,7 @@ integer
 </tr>
 <tr>
 <td style="text-align:left;">
-pro\_3
+pro_3
 </td>
 <td style="text-align:left;">
 integer
@@ -1727,7 +1727,7 @@ integer
 -   **median**: Median value
 -   **mode**: Most common value (for categorical variables, this shows
     the frequency of the most common category)
--   **mode\_value**: For categorical variables, the value of the most
+-   **mode_value**: For categorical variables, the value of the most
     common category
 -   **sd**: Standard deviation (measure of dispersion for numerical
     variables
@@ -1736,10 +1736,10 @@ integer
 -   **max**: Maximum value
 -   **range**: Range between minimum and maximum value
 -   **skew**: Skewness of the variable
--   **skew\_2se**: Skewness of the variable divided by 2\*SE of the
+-   **skew_2se**: Skewness of the variable divided by 2\*SE of the
     skewness. If this is greater than abs(1), skewness is significant
 -   **kurt**: Kurtosis (peakedness) of the variable
--   **kurt\_2se**: Kurtosis of the variable divided by 2\*SE of the
+-   **kurt_2se**: Kurtosis of the variable divided by 2\*SE of the
     kurtosis. If this is greater than abs(1), kurtosis is significant.
 
 This codebook was generated using the [Workflow for Open Reproducible
