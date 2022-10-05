@@ -24,3 +24,5 @@ tris.csv
 !synthetic_dk.csv
 !synthetic_us.csv
 !synthetic_tris.csv
+!descriptives*.csv
+!correlations*.csv
